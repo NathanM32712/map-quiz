@@ -10,51 +10,70 @@
       height: 100vh;
       font-family: Arial, sans-serif;
       background: #111;
-      color: white;
+      color: #eee;
     }
     #sidebar {
-      width: 260px;
+      width: 280px;
       background: #222;
       padding: 15px;
       display: flex;
       flex-direction: column;
       gap: 10px;
+      box-sizing: border-box;
     }
     #map {
       flex: 1;
-      background: black;
+      background: #000;
       display: flex;
       align-items: center;
       justify-content: center;
     }
-    object {
+    #svgMap {
       width: 100%;
       height: 100%;
+      border: none;
+    }
+    select, button {
+      padding: 6px 8px;
+      background: #333;
+      border: 1px solid #555;
+      color: #eee;
+      border-radius: 4px;
+      font-size: 14px;
     }
     button {
-      padding: 8px;
-      background: #444;
-      border: 1px solid #666;
-      color: white;
       cursor: pointer;
     }
     button:hover {
-      background: #555;
+      background: #444;
     }
     .highlight {
-      stroke: yellow !important;
+      stroke: #ffd54a !important;
       stroke-width: 2 !important;
+    }
+    #target {
+      font-weight: bold;
+      color: #ffd54a;
+    }
+    #score {
+      font-weight: bold;
+    }
+    #result.correct {
+      color: #7CFC00;
+    }
+    #result.wrong {
+      color: #ff6b6b;
     }
   </style>
 </head>
 <body>
 
 <div id="sidebar">
-  <h2>World Quiz</h2>
+  <h2>World Map Quiz</h2>
 
-  <label>Continent:</label>
-  <select id="continentSelect">
-    <option value="World">World</option>
+  <label for="modeSelect">Mode:</label>
+  <select id="modeSelect">
+    <option value="World">World (all countries)</option>
     <option value="North America">North America</option>
     <option value="South America">South America</option>
     <option value="Europe">Europe</option>
@@ -67,6 +86,10 @@
 
   <div>
     <strong>Find:</strong> <span id="target">---</span>
+  </div>
+
+  <div>
+    <strong>Score:</strong> <span id="score">0</span> / <span id="total">0</span>
   </div>
 
   <div id="result"></div>
@@ -89,8 +112,9 @@ const continents = {
     "Dominica","Saint Kitts and Nevis"
   ],
   "South America": [
+    // 12 to keep world total at 196 (no French Guiana)
     "Brazil","Argentina","Chile","Uruguay","Paraguay","Bolivia","Peru","Ecuador",
-    "Colombia","Venezuela","Guyana","Suriname","French Guiana"
+    "Colombia","Venezuela","Guyana","Suriname"
   ],
   "Europe": [
     "United Kingdom","Ireland","France","Spain","Portugal","Germany","Italy",
@@ -127,61 +151,201 @@ const continents = {
 };
 
 // ------------------------------
-// QUIZ LOGIC
+// STATE
 // ------------------------------
 let svgDoc = null;
+let svgRoot = null;
+let initialViewBox = null;
+
+let currentMode = "World";
+let modeCountries = [];
+let remainingCountries = [];
 let currentCountry = null;
+let correctCount = 0;
+let modeTotal = 0;
 
-document.getElementById("svgMap").addEventListener("load", () => {
-  svgDoc = document.getElementById("svgMap").contentDocument;
-});
+const modeSelect = document.getElementById("modeSelect");
+const nextBtn = document.getElementById("nextBtn");
+const targetEl = document.getElementById("target");
+const scoreEl = document.getElementById("score");
+const totalEl = document.getElementById("total");
+const resultEl = document.getElementById("result");
 
-function pickCountry() {
-  const cont = document.getElementById("continentSelect").value;
-
-  let pool = [];
-  if (cont === "World") {
-    Object.values(continents).forEach(arr => pool.push(...arr));
-  } else {
-    pool = continents[cont];
+// ------------------------------
+// HELPERS
+// ------------------------------
+function getModeCountries(mode) {
+  if (mode === "World") {
+    const set = new Set();
+    Object.values(continents).forEach(arr => arr.forEach(c => set.add(c)));
+    return Array.from(set);
   }
-
-  currentCountry = pool[Math.floor(Math.random() * pool.length)];
-  document.getElementById("target").textContent = currentCountry;
-
-  highlightNone();
+  return continents[mode] ? [...continents[mode]] : [];
 }
 
-function highlightNone() {
+function resetScoreAndPool() {
+  modeCountries = getModeCountries(currentMode);
+  remainingCountries = [...modeCountries];
+  correctCount = 0;
+  modeTotal = modeCountries.length;
+  scoreEl.textContent = correctCount;
+  totalEl.textContent = modeTotal;
+  resultEl.textContent = "";
+  resultEl.className = "";
+}
+
+function pickNextCountry() {
+  if (!remainingCountries.length) {
+    targetEl.textContent = "---";
+    resultEl.textContent = `You completed ${currentMode}! ${correctCount}/${modeTotal} correct.`;
+    resultEl.className = "correct";
+    return;
+  }
+  const idx = Math.floor(Math.random() * remainingCountries.length);
+  currentCountry = remainingCountries[idx];
+  targetEl.textContent = currentCountry;
+  resultEl.textContent = "";
+  resultEl.className = "";
+  clearHighlights();
+  zoomToCountry(currentCountry);
+}
+
+function clearHighlights() {
   if (!svgDoc) return;
-  svgDoc.querySelectorAll("path").forEach(p => {
-    p.classList.remove("highlight");
-  });
+  svgDoc.querySelectorAll("path").forEach(p => p.classList.remove("highlight"));
 }
 
+function findCountryElement(name) {
+  if (!svgDoc) return null;
+  const paths = svgDoc.querySelectorAll("path");
+  const targetLower = name.toLowerCase();
+  for (const p of paths) {
+    const cls = (p.getAttribute("class") || "").trim();
+    const id = (p.getAttribute("id") || "").trim();
+    if (cls && cls.toLowerCase() === targetLower) return p;
+    if (id && id.toLowerCase() === targetLower) return p;
+  }
+  return null;
+}
+
+// Smooth viewBox animation
+function animateViewBox(from, to, duration = 500) {
+  if (!svgRoot) return;
+  const start = performance.now();
+
+  function step(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const x = from.x + (to.x - from.x) * t;
+    const y = from.y + (to.y - from.y) * t;
+    const w = from.w + (to.w - from.w) * t;
+    const h = from.h + (to.h - from.h) * t;
+    svgRoot.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+    if (t < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function parseViewBox(vb) {
+  if (!vb) return null;
+  const parts = vb.split(/\s+/).map(Number);
+  if (parts.length !== 4 || parts.some(isNaN)) return null;
+  return { x: parts[0], y: parts[1], w: parts[2], h: parts[3] };
+}
+
+function zoomToCountry(name) {
+  if (!svgRoot || !svgDoc) return;
+  const el = findCountryElement(name);
+  if (!el) return;
+
+  const bbox = el.getBBox();
+  const paddingFactor = 1.5;
+  const cx = bbox.x + bbox.width / 2;
+  const cy = bbox.y + bbox.height / 2;
+  const w = bbox.width * paddingFactor;
+  const h = bbox.height * paddingFactor;
+  const x = cx - w / 2;
+  const y = cy - h / 2;
+
+  const currentVB = parseViewBox(svgRoot.getAttribute("viewBox")) || initialViewBox;
+  const targetVB = { x, y, w, h };
+  animateViewBox(currentVB, targetVB, 500);
+}
+
+// ------------------------------
+// CLICK HANDLING
+// ------------------------------
 function setupClicks() {
   if (!svgDoc) return;
-
-  svgDoc.querySelectorAll("path").forEach(p => {
+  const paths = svgDoc.querySelectorAll("path");
+  paths.forEach(p => {
+    p.style.cursor = "pointer";
     p.addEventListener("click", () => {
-      const name = p.getAttribute("class") || p.getAttribute("id");
-
+      if (!currentCountry) return;
+      const cls = (p.getAttribute("class") || "").trim();
+      const id = (p.getAttribute("id") || "").trim();
+      const name = cls || id;
       if (!name) return;
 
       if (name.toLowerCase() === currentCountry.toLowerCase()) {
+        // Correct
         p.classList.add("highlight");
-        document.getElementById("result").textContent = "Correct!";
+        resultEl.textContent = "Correct!";
+        resultEl.className = "correct";
+
+        // Remove from remaining
+        remainingCountries = remainingCountries.filter(c => c !== currentCountry);
+        correctCount++;
+        scoreEl.textContent = correctCount;
+
+        // Next after a short delay
+        setTimeout(pickNextCountry, 700);
       } else {
-        document.getElementById("result").textContent = "Wrong!";
+        resultEl.textContent = `Wrong! That was ${name}.`;
+        resultEl.className = "wrong";
       }
     });
   });
 }
 
-document.getElementById("nextBtn").onclick = pickCountry;
+// ------------------------------
+// MODE CHANGE
+// ------------------------------
+modeSelect.addEventListener("change", () => {
+  currentMode = modeSelect.value;
+  resetScoreAndPool();
+  // Reset viewBox to full world
+  if (svgRoot && initialViewBox) {
+    svgRoot.setAttribute("viewBox",
+      `${initialViewBox.x} ${initialViewBox.y} ${initialViewBox.w} ${initialViewBox.h}`);
+  }
+  pickNextCountry();
+});
 
-setTimeout(setupClicks, 1000);
-pickCountry();
+// ------------------------------
+// INIT
+// ------------------------------
+document.getElementById("svgMap").addEventListener("load", () => {
+  svgDoc = document.getElementById("svgMap").contentDocument;
+  svgRoot = svgDoc.documentElement;
+
+  const vb = parseViewBox(svgRoot.getAttribute("viewBox"));
+  if (vb) {
+    initialViewBox = vb;
+  } else {
+    const bbox = svgRoot.getBBox();
+    initialViewBox = { x: bbox.x, y: bbox.y, w: bbox.width, h: bbox.height };
+    svgRoot.setAttribute("viewBox",
+      `${initialViewBox.x} ${initialViewBox.y} ${initialViewBox.w} ${initialViewBox.h}`);
+  }
+
+  setupClicks();
+  resetScoreAndPool();
+  pickNextCountry();
+});
+
+nextBtn.addEventListener("click", () => {
+  pickNextCountry();
+});
 </script>
 
 </body>

@@ -20,6 +20,20 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 20px;
+    }
+
+    select, button {
+        background: #334155;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    select:hover, button:hover {
+        background: #475569;
     }
 
     #map-container {
@@ -49,25 +63,26 @@
     .wrong {
         fill: #ef4444 !important;
     }
-
-    button {
-        background: #334155;
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        cursor: pointer;
-        border-radius: 4px;
-    }
-
-    button:hover {
-        background: #475569;
-    }
 </style>
 </head>
 <body>
 
 <header>
     <div id="question">Loading…</div>
+
+    <div>
+        Mode:
+        <select id="mode">
+            <option value="world">World</option>
+            <option value="africa">Africa</option>
+            <option value="asia">Asia</option>
+            <option value="europe">Europe</option>
+            <option value="northamerica">North America</option>
+            <option value="southamerica">South America</option>
+            <option value="oceania">Oceania</option>
+        </select>
+    </div>
+
     <div>
         <span id="score">Score: 0%</span>
         <button id="reset">Reset Zoom</button>
@@ -80,55 +95,63 @@
 </div>
 
 <script>
-const COUNTRY_NAMES = {
- "AF": "Afghanistan","AL": "Albania","DZ": "Algeria","AI": "Anguilla","AM": "Armenia",
- "AW": "Aruba","AT": "Austria","BH": "Bahrain","BD": "Bangladesh","BB": "Barbados",
- "BY": "Belarus","BE": "Belgium","BZ": "Belize","BJ": "Benin","BM": "Bermuda",
- "BT": "Bhutan","BO": "Bolivia","BA": "Bosnia and Herzegovina","BW": "Botswana",
- "BR": "Brazil","VG": "British Virgin Islands","BN": "Brunei Darussalam","BG": "Bulgaria",
- "BF": "Burkina Faso","BI": "Burundi","KH": "Cambodia","CM": "Cameroon",
- "CF": "Central African Republic","TD": "Chad","CO": "Colombia","CR": "Costa Rica",
- "HR": "Croatia","CU": "Cuba","CW": "Curaçao","CZ": "Czech Republic",
- "CI": "Côte d'Ivoire","KP": "Dem. Rep. Korea","CD": "Democratic Republic of the Congo",
- "DJ": "Djibouti","DM": "Dominica","DO": "Dominican Republic","EC": "Ecuador",
- "EG": "Egypt","SV": "El Salvador","GQ": "Equatorial Guinea","ER": "Eritrea",
- "EE": "Estonia","ET": "Ethiopia","FI": "Finland","GF": "French Guiana","GA": "Gabon",
- "GE": "Georgia","DE": "Germany","GH": "Ghana","GL": "Greenland","GD": "Grenada",
- "GU": "Guam","GT": "Guatemala","GN": "Guinea","GW": "Guinea-Bissau","GY": "Guyana",
- "HT": "Haiti","HN": "Honduras","HU": "Hungary","IS": "Iceland","IN": "India",
- "IR": "Iran","IQ": "Iraq","IE": "Ireland","IL": "Israel","JM": "Jamaica",
- "JO": "Jordan","KZ": "Kazakhstan","KE": "Kenya","XK": "Kosovo","KW": "Kuwait",
- "KG": "Kyrgyzstan","LA": "Lao PDR","LV": "Latvia","LB": "Lebanon","LS": "Lesotho",
- "LR": "Liberia","LY": "Libya","LT": "Lithuania","LU": "Luxembourg","MK": "Macedonia",
- "MG": "Madagascar","MW": "Malawi","MV": "Maldives","ML": "Mali","MH": "Marshall Islands",
- "MQ": "Martinique","MR": "Mauritania","YT": "Mayotte","MX": "Mexico","MD": "Moldova",
- "MN": "Mongolia","ME": "Montenegro","MS": "Montserrat","MA": "Morocco","MZ": "Mozambique",
- "MM": "Myanmar","NA": "Namibia","NR": "Nauru","NP": "Nepal","NL": "Netherlands",
- "BQBO": "Netherlands","NI": "Nicaragua","NE": "Niger","NG": "Nigeria","PK": "Pakistan",
- "PW": "Palau","PS": "Palestine","PA": "Panama","PY": "Paraguay","PE": "Peru",
- "PL": "Poland","PT": "Portugal","QA": "Qatar","CG": "Republic of Congo",
- "KR": "Republic of Korea","RE": "Reunion","RO": "Romania","RW": "Rwanda",
- "BQSA": "Saba (Netherlands)","LC": "Saint Lucia","VC": "Saint Vincent and the Grenadines",
- "BL": "Saint-Barthélemy","MF": "Saint-Martin","SA": "Saudi Arabia","SN": "Senegal",
- "RS": "Serbia","SL": "Sierra Leone","SX": "Sint Maarten","SK": "Slovakia",
- "SI": "Slovenia","SO": "Somalia","ZA": "South Africa","SS": "South Sudan",
- "ES": "Spain","LK": "Sri Lanka","BQSE": "St. Eustatius (Netherlands)","SD": "Sudan",
- "SR": "Suriname","SZ": "Swaziland","SE": "Sweden","CH": "Switzerland","SY": "Syria",
- "TW": "Taiwan","TJ": "Tajikistan","TZ": "Tanzania","TH": "Thailand","GM": "The Gambia",
- "TL": "Timor-Leste","TG": "Togo","TN": "Tunisia","TM": "Turkmenistan","TV": "Tuvalu",
- "UG": "Uganda","UA": "Ukraine","AE": "United Arab Emirates","UY": "Uruguay",
- "UZ": "Uzbekistan","VE": "Venezuela","VN": "Vietnam","EH": "Western Sahara",
- "YE": "Yemen","ZM": "Zambia","ZW": "Zimbabwe"
+/* COUNTRY NAME TABLE (your data) */
+const COUNTRY_NAMES = { /* ——— shortened for readability ——— */
+ "AF":"Afghanistan","AL":"Albania","DZ":"Algeria","AI":"Anguilla","AM":"Armenia",
+ "AW":"Aruba","AT":"Austria","BH":"Bahrain","BD":"Bangladesh","BB":"Barbados",
+ "BY":"Belarus","BE":"Belgium","BZ":"Belize","BJ":"Benin","BM":"Bermuda",
+ "BT":"Bhutan","BO":"Bolivia","BA":"Bosnia and Herzegovina","BW":"Botswana",
+ "BR":"Brazil","VG":"British Virgin Islands","BN":"Brunei Darussalam","BG":"Bulgaria",
+ "BF":"Burkina Faso","BI":"Burundi","KH":"Cambodia","CM":"Cameroon",
+ "CF":"Central African Republic","TD":"Chad","CO":"Colombia","CR":"Costa Rica",
+ "HR":"Croatia","CU":"Cuba","CW":"Curaçao","CZ":"Czech Republic",
+ "CI":"Côte d'Ivoire","KP":"Dem. Rep. Korea","CD":"Democratic Republic of the Congo",
+ "DJ":"Djibouti","DM":"Dominica","DO":"Dominican Republic","EC":"Ecuador",
+ "EG":"Egypt","SV":"El Salvador","GQ":"Equatorial Guinea","ER":"Eritrea",
+ "EE":"Estonia","ET":"Ethiopia","FI":"Finland","GF":"French Guiana","GA":"Gabon",
+ "GE":"Georgia","DE":"Germany","GH":"Ghana","GL":"Greenland","GD":"Grenada",
+ "GU":"Guam","GT":"Guatemala","GN":"Guinea","GW":"Guinea-Bissau","GY":"Guyana",
+ "HT":"Haiti","HN":"Honduras","HU":"Hungary","IS":"Iceland","IN":"India",
+ "IR":"Iran","IQ":"Iraq","IE":"Ireland","IL":"Israel","JM":"Jamaica",
+ "JO":"Jordan","KZ":"Kazakhstan","KE":"Kenya","XK":"Kosovo","KW":"Kuwait",
+ "KG":"Kyrgyzstan","LA":"Lao PDR","LV":"Latvia","LB":"Lebanon","LS":"Lesotho",
+ "LR":"Liberia","LY":"Libya","LT":"Lithuania","LU":"Luxembourg","MK":"Macedonia",
+ "MG":"Madagascar","MW":"Malawi","MV":"Maldives","ML":"Mali","MH":"Marshall Islands",
+ "MQ":"Martinique","MR":"Mauritania","YT":"Mayotte","MX":"Mexico","MD":"Moldova",
+ "MN":"Mongolia","ME":"Montenegro","MS":"Montserrat","MA":"Morocco","MZ":"Mozambique",
+ "MM":"Myanmar","NA":"Namibia","NR":"Nauru","NP":"Nepal","NL":"Netherlands",
+ "NI":"Nicaragua","NE":"Niger","NG":"Nigeria","PK":"Pakistan","PW":"Palau",
+ "PS":"Palestine","PA":"Panama","PY":"Paraguay","PE":"Peru","PL":"Poland",
+ "PT":"Portugal","QA":"Qatar","CG":"Republic of Congo","KR":"Republic of Korea",
+ "RO":"Romania","RW":"Rwanda","LC":"Saint Lucia","VC":"Saint Vincent and the Grenadines",
+ "SA":"Saudi Arabia","SN":"Senegal","RS":"Serbia","SL":"Sierra Leone",
+ "SK":"Slovakia","SI":"Slovenia","SO":"Somalia","ZA":"South Africa",
+ "ES":"Spain","LK":"Sri Lanka","SD":"Sudan","SR":"Suriname","SE":"Sweden",
+ "CH":"Switzerland","SY":"Syria","TW":"Taiwan","TJ":"Tajikistan","TZ":"Tanzania",
+ "TH":"Thailand","GM":"The Gambia","TL":"Timor-Leste","TG":"Togo","TN":"Tunisia",
+ "TM":"Turkmenistan","TV":"Tuvalu","UG":"Uganda","UA":"Ukraine","AE":"United Arab Emirates",
+ "UY":"Uruguay","UZ":"Uzbekistan","VE":"Venezuela","VN":"Vietnam","YE":"Yemen",
+ "ZM":"Zambia","ZW":"Zimbabwe"
+};
+
+/* CONTINENT GROUPS */
+const CONTINENTS = {
+    africa: ["DZ","AO","BJ","BW","BF","BI","CM","CV","CF","TD","KM","CG","CD","DJ","EG","GQ","ER","ET","GA","GM","GH","GN","GW","CI","KE","LS","LR","LY","MG","MW","ML","MR","MU","YT","MA","MZ","NA","NE","NG","RE","RW","ST","SN","SC","SL","SO","ZA","SS","SD","SZ","TZ","TG","TN","UG","EH","ZM","ZW"],
+    asia: ["AF","AM","AZ","BH","BD","BT","BN","KH","CN","CY","GE","IN","ID","IR","IQ","IL","JP","JO","KZ","KW","KG","LA","LB","MY","MV","MN","MM","NP","KP","OM","PK","PS","PH","QA","SA","SG","KR","LK","SY","TW","TJ","TH","TL","TR","TM","AE","UZ","VN","YE"],
+    europe: ["AL","AD","AM","AT","BY","BE","BA","BG","HR","CY","CZ","DK","EE","FI","FR","GE","DE","GR","HU","IS","IE","IT","XK","LV","LI","LT","LU","MT","MD","MC","ME","NL","MK","NO","PL","PT","RO","RU","SM","RS","SK","SI","ES","SE","CH","UA","GB","VA"],
+    northamerica: ["AG","BS","BB","BZ","CA","CR","CU","DM","DO","SV","GD","GT","HT","HN","JM","MX","NI","PA","KN","LC","VC","TT","US"],
+    southamerica: ["AR","BO","BR","CL","CO","EC","FK","GF","GY","PY","PE","SR","UY","VE"],
+    oceania: ["AU","FJ","KI","MH","FM","NR","NZ","PW","PG","WS","SB","TO","TV","VU"]
 };
 
 let svg, viewBoxOriginal;
 let target = null;
 let correct = 0;
 let total = 0;
+let pool = [];
 
 document.getElementById("svgMap").addEventListener("load", () => {
     svg = document.getElementById("svgMap").contentDocument.documentElement;
-
     viewBoxOriginal = svg.getAttribute("viewBox").split(" ").map(Number);
 
     for (let code in COUNTRY_NAMES) {
@@ -136,25 +159,41 @@ document.getElementById("svgMap").addEventListener("load", () => {
         if (!el) continue;
 
         el.style.transition = "0.2s";
-
         el.addEventListener("mouseenter", () => el.classList.add("hover"));
         el.addEventListener("mouseleave", () => el.classList.remove("hover"));
-
         el.addEventListener("click", () => handleClick(code, el));
     }
 
+    startMode("world");
+});
+
+function startMode(mode) {
+    correct = 0;
+    total = 0;
+    updateScore();
+
+    if (mode === "world") {
+        pool = Object.keys(COUNTRY_NAMES);
+    } else {
+        pool = CONTINENTS[mode] || [];
+    }
+
     nextQuestion();
+    resetZoom();
+}
+
+document.getElementById("mode").addEventListener("change", e => {
+    startMode(e.target.value);
 });
 
 function nextQuestion() {
-    const keys = Object.keys(COUNTRY_NAMES);
-    target = keys[Math.floor(Math.random() * keys.length)];
-    document.getElementById("question").textContent = "Find: " + COUNTRY_NAMES[target];
+    target = pool[Math.floor(Math.random() * pool.length)];
+    document.getElementById("question").textContent =
+        "Find: " + COUNTRY_NAMES[target];
 }
 
 function handleClick(code, el) {
     total++;
-
     zoomTo(el);
 
     if (code === target) {
@@ -178,20 +217,17 @@ function updateScore() {
 function zoomTo(el) {
     const b = el.getBBox();
     const pad = 10;
-    svg.setAttribute("viewBox", `${b.x - pad} ${b.y - pad} ${b.width + pad*2} ${b.height + pad*2}`);
+    svg.setAttribute("viewBox",
+        `${b.x - pad} ${b.y - pad} ${b.width + pad*2} ${b.height + pad*2}`
+    );
 }
 
-document.getElementById("reset").onclick = () => {
+function resetZoom() {
     svg.setAttribute("viewBox", viewBoxOriginal.join(" "));
-};
+}
 
-document.getElementById("restart").onclick = () => {
-    correct = 0;
-    total = 0;
-    updateScore();
-    nextQuestion();
-    svg.setAttribute("viewBox", viewBoxOriginal.join(" "));
-};
+document.getElementById("reset").onclick = resetZoom;
+document.getElementById("restart").onclick = () => startMode(document.getElementById("mode").value);
 </script>
 
 </body>

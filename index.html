@@ -1,288 +1,198 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>World Map Quiz</title>
-  <style>
+<meta charset="UTF-8">
+<title>World Map Quiz</title>
+<style>
     body {
-      font-family: system-ui, sans-serif;
-      margin: 0;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
+        margin: 0;
+        background: #0f172a;
+        color: white;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
     }
 
     header {
-      padding: 10px 16px;
-      background: #111827;
-      color: #e5e7eb;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    #quiz-info {
-      display: flex;
-      gap: 16px;
-      align-items: center;
-      font-size: 14px;
-    }
-
-    #question {
-      font-weight: 600;
-    }
-
-    #score {
-      font-weight: 600;
-    }
-
-    #controls {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    button {
-      padding: 4px 10px;
-      font-size: 13px;
-      border-radius: 4px;
-      border: 1px solid #4b5563;
-      background: #1f2937;
-      color: #e5e7eb;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #374151;
-    }
-
-    #message {
-      font-size: 13px;
-      min-width: 160px;
-    }
-
-    main {
-      flex: 1;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #0f172a;
+        padding: 10px;
+        background: #1e293b;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
     #map-container {
-      width: 90vw;
-      height: 80vh;
-      max-width: 1200px;
-      border: 1px solid #4b5563;
-      background: #020617;
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
     }
 
-    #map-container object {
-      width: 100%;
-      height: 100%;
-      display: block;
+    object {
+        width: 95%;
+        height: 95%;
+        border: 1px solid #334155;
+        background: #020617;
     }
 
-    /* Highlight hovered country */
-    .country-hover {
-      stroke: #facc15 !important;
-      stroke-width: 1.5 !important;
-      cursor: pointer;
+    .hover {
+        stroke: yellow !important;
+        stroke-width: 2 !important;
+        cursor: pointer;
     }
 
-    /* Correct / wrong flash */
     .correct {
-      fill: #22c55e !important;
+        fill: #22c55e !important;
     }
 
     .wrong {
-      fill: #ef4444 !important;
+        fill: #ef4444 !important;
     }
-  </style>
+
+    button {
+        background: #334155;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    button:hover {
+        background: #475569;
+    }
+</style>
 </head>
 <body>
-  <header>
-    <div id="quiz-info">
-      <div id="question">Loading map…</div>
-      <div id="score">Score: 0 / 0</div>
+
+<header>
+    <div id="question">Loading…</div>
+    <div>
+        <span id="score">Score: 0%</span>
+        <button id="reset">Reset Zoom</button>
+        <button id="restart">Restart</button>
     </div>
-    <div id="controls">
-      <button id="resetZoomBtn">Reset zoom</button>
-      <button id="restartBtn">Restart quiz</button>
-      <div id="message"></div>
-    </div>
-  </header>
+</header>
 
-  <main>
-    <div id="map-container">
-      <!-- Make sure world.svg is in the same folder as this HTML file -->
-      <object id="worldMap" type="image/svg+xml" data="world.svg"></object>
-    </div>
-  </main>
+<div id="map-container">
+    <object id="svgMap" data="world.svg" type="image/svg+xml"></object>
+</div>
 
-  <script>
-    const worldObject = document.getElementById('worldMap');
-    const questionEl = document.getElementById('question');
-    const scoreEl = document.getElementById('score');
-    const messageEl = document.getElementById('message');
-    const resetZoomBtn = document.getElementById('resetZoomBtn');
-    const restartBtn = document.getElementById('restartBtn');
+<script>
+const COUNTRY_NAMES = {
+ "AF": "Afghanistan","AL": "Albania","DZ": "Algeria","AI": "Anguilla","AM": "Armenia",
+ "AW": "Aruba","AT": "Austria","BH": "Bahrain","BD": "Bangladesh","BB": "Barbados",
+ "BY": "Belarus","BE": "Belgium","BZ": "Belize","BJ": "Benin","BM": "Bermuda",
+ "BT": "Bhutan","BO": "Bolivia","BA": "Bosnia and Herzegovina","BW": "Botswana",
+ "BR": "Brazil","VG": "British Virgin Islands","BN": "Brunei Darussalam","BG": "Bulgaria",
+ "BF": "Burkina Faso","BI": "Burundi","KH": "Cambodia","CM": "Cameroon",
+ "CF": "Central African Republic","TD": "Chad","CO": "Colombia","CR": "Costa Rica",
+ "HR": "Croatia","CU": "Cuba","CW": "Curaçao","CZ": "Czech Republic",
+ "CI": "Côte d'Ivoire","KP": "Dem. Rep. Korea","CD": "Democratic Republic of the Congo",
+ "DJ": "Djibouti","DM": "Dominica","DO": "Dominican Republic","EC": "Ecuador",
+ "EG": "Egypt","SV": "El Salvador","GQ": "Equatorial Guinea","ER": "Eritrea",
+ "EE": "Estonia","ET": "Ethiopia","FI": "Finland","GF": "French Guiana","GA": "Gabon",
+ "GE": "Georgia","DE": "Germany","GH": "Ghana","GL": "Greenland","GD": "Grenada",
+ "GU": "Guam","GT": "Guatemala","GN": "Guinea","GW": "Guinea-Bissau","GY": "Guyana",
+ "HT": "Haiti","HN": "Honduras","HU": "Hungary","IS": "Iceland","IN": "India",
+ "IR": "Iran","IQ": "Iraq","IE": "Ireland","IL": "Israel","JM": "Jamaica",
+ "JO": "Jordan","KZ": "Kazakhstan","KE": "Kenya","XK": "Kosovo","KW": "Kuwait",
+ "KG": "Kyrgyzstan","LA": "Lao PDR","LV": "Latvia","LB": "Lebanon","LS": "Lesotho",
+ "LR": "Liberia","LY": "Libya","LT": "Lithuania","LU": "Luxembourg","MK": "Macedonia",
+ "MG": "Madagascar","MW": "Malawi","MV": "Maldives","ML": "Mali","MH": "Marshall Islands",
+ "MQ": "Martinique","MR": "Mauritania","YT": "Mayotte","MX": "Mexico","MD": "Moldova",
+ "MN": "Mongolia","ME": "Montenegro","MS": "Montserrat","MA": "Morocco","MZ": "Mozambique",
+ "MM": "Myanmar","NA": "Namibia","NR": "Nauru","NP": "Nepal","NL": "Netherlands",
+ "BQBO": "Netherlands","NI": "Nicaragua","NE": "Niger","NG": "Nigeria","PK": "Pakistan",
+ "PW": "Palau","PS": "Palestine","PA": "Panama","PY": "Paraguay","PE": "Peru",
+ "PL": "Poland","PT": "Portugal","QA": "Qatar","CG": "Republic of Congo",
+ "KR": "Republic of Korea","RE": "Reunion","RO": "Romania","RW": "Rwanda",
+ "BQSA": "Saba (Netherlands)","LC": "Saint Lucia","VC": "Saint Vincent and the Grenadines",
+ "BL": "Saint-Barthélemy","MF": "Saint-Martin","SA": "Saudi Arabia","SN": "Senegal",
+ "RS": "Serbia","SL": "Sierra Leone","SX": "Sint Maarten","SK": "Slovakia",
+ "SI": "Slovenia","SO": "Somalia","ZA": "South Africa","SS": "South Sudan",
+ "ES": "Spain","LK": "Sri Lanka","BQSE": "St. Eustatius (Netherlands)","SD": "Sudan",
+ "SR": "Suriname","SZ": "Swaziland","SE": "Sweden","CH": "Switzerland","SY": "Syria",
+ "TW": "Taiwan","TJ": "Tajikistan","TZ": "Tanzania","TH": "Thailand","GM": "The Gambia",
+ "TL": "Timor-Leste","TG": "Togo","TN": "Tunisia","TM": "Turkmenistan","TV": "Tuvalu",
+ "UG": "Uganda","UA": "Ukraine","AE": "United Arab Emirates","UY": "Uruguay",
+ "UZ": "Uzbekistan","VE": "Venezuela","VN": "Vietnam","EH": "Western Sahara",
+ "YE": "Yemen","ZM": "Zambia","ZW": "Zimbabwe"
+};
 
-    let svgRoot = null;
-    let originalViewBox = null;
+let svg, viewBoxOriginal;
+let target = null;
+let correct = 0;
+let total = 0;
 
-    // Quiz state
-    let countries = [];      // { id, name, element }
-    let remaining = [];      // queue of country objects
-    let current = null;      // current target country
-    let correctCount = 0;
-    let totalQuestions = 10; // number of questions per round
-    let answered = 0;
+document.getElementById("svgMap").addEventListener("load", () => {
+    svg = document.getElementById("svgMap").contentDocument.documentElement;
 
-    worldObject.addEventListener('load', () => {
-      svgRoot = worldObject.contentDocument.documentElement;
+    viewBoxOriginal = svg.getAttribute("viewBox").split(" ").map(Number);
 
-      // Save original viewBox for reset
-      const vb = svgRoot.getAttribute('viewBox');
-      if (vb) {
-        originalViewBox = vb.split(' ').map(Number);
-      } else {
-        // Fallback: create a viewBox from width/height
-        const w = parseFloat(svgRoot.getAttribute('width')) || 1000;
-        const h = parseFloat(svgRoot.getAttribute('height')) || 500;
-        originalViewBox = [0, 0, w, h];
-        svgRoot.setAttribute('viewBox', originalViewBox.join(' '));
-      }
+    for (let code in COUNTRY_NAMES) {
+        let el = svg.getElementById(code);
+        if (!el) continue;
 
-      // Collect country paths
-      // Assumes each country is a <path> (or <g>) with id or data-name
-      const all = svgRoot.querySelectorAll('path, g');
-      countries = [];
-      all.forEach(el => {
-        const id = el.id || el.getAttribute('data-id');
-        const name = el.getAttribute('data-name') || id;
-        if (!id || !name) return;
-        countries.push({ id, name, element: el });
-      });
+        el.style.transition = "0.2s";
 
-      if (countries.length === 0) {
-        questionEl.textContent = 'No countries found in SVG. Add ids/data-name to paths.';
-        return;
-      }
+        el.addEventListener("mouseenter", () => el.classList.add("hover"));
+        el.addEventListener("mouseleave", () => el.classList.remove("hover"));
 
-      attachCountryEvents();
-      startQuiz();
-    });
-
-    function attachCountryEvents() {
-      countries.forEach(c => {
-        const el = c.element;
-
-        el.style.transition = 'fill 0.2s, stroke 0.2s';
-
-        el.addEventListener('mouseenter', () => {
-          el.classList.add('country-hover');
-        });
-
-        el.addEventListener('mouseleave', () => {
-          el.classList.remove('country-hover');
-        });
-
-        el.addEventListener('click', () => {
-          handleCountryClick(c);
-        });
-      });
+        el.addEventListener("click", () => handleClick(code, el));
     }
 
-    function startQuiz() {
-      correctCount = 0;
-      answered = 0;
-      messageEl.textContent = '';
-      resetZoom();
+    nextQuestion();
+});
 
-      // Pick a random subset of countries for the quiz
-      const shuffled = [...countries].sort(() => Math.random() - 0.5);
-      remaining = shuffled.slice(0, Math.min(totalQuestions, shuffled.length));
+function nextQuestion() {
+    const keys = Object.keys(COUNTRY_NAMES);
+    target = keys[Math.floor(Math.random() * keys.length)];
+    document.getElementById("question").textContent = "Find: " + COUNTRY_NAMES[target];
+}
 
-      nextQuestion();
-      updateScore();
+function handleClick(code, el) {
+    total++;
+
+    zoomTo(el);
+
+    if (code === target) {
+        correct++;
+        el.classList.add("correct");
+        setTimeout(() => el.classList.remove("correct"), 800);
+    } else {
+        el.classList.add("wrong");
+        setTimeout(() => el.classList.remove("wrong"), 800);
     }
 
-    function nextQuestion() {
-      if (remaining.length === 0) {
-        endQuiz();
-        return;
-      }
-      current = remaining.shift();
-      questionEl.textContent = `Click on: ${current.name}`;
-    }
+    updateScore();
+    nextQuestion();
+}
 
-    function handleCountryClick(clicked) {
-      if (!current) return;
+function updateScore() {
+    let percent = Math.round((correct / total) * 100);
+    document.getElementById("score").textContent = "Score: " + percent + "%";
+}
 
-      // Zoom into clicked country
-      zoomToElement(clicked.element);
+function zoomTo(el) {
+    const b = el.getBBox();
+    const pad = 10;
+    svg.setAttribute("viewBox", `${b.x - pad} ${b.y - pad} ${b.width + pad*2} ${b.height + pad*2}`);
+}
 
-      // Check correctness
-      answered++;
-      if (clicked.id === current.id) {
-        correctCount++;
-        flashCountry(clicked.element, 'correct');
-        messageEl.textContent = 'Correct!';
-      } else {
-        flashCountry(clicked.element, 'wrong');
-        messageEl.textContent = `Wrong, that was ${clicked.name}.`;
-      }
+document.getElementById("reset").onclick = () => {
+    svg.setAttribute("viewBox", viewBoxOriginal.join(" "));
+};
 
-      updateScore();
+document.getElementById("restart").onclick = () => {
+    correct = 0;
+    total = 0;
+    updateScore();
+    nextQuestion();
+    svg.setAttribute("viewBox", viewBoxOriginal.join(" "));
+};
+</script>
 
-      // Next question after short delay
-      setTimeout(() => {
-        if (remaining.length > 0) {
-          nextQuestion();
-        } else {
-          endQuiz();
-        }
-      }, 900);
-    }
-
-    function flashCountry(el, cls) {
-      el.classList.add(cls);
-      setTimeout(() => el.classList.remove(cls), 700);
-    }
-
-    function updateScore() {
-      scoreEl.textContent = `Score: ${correctCount} / ${answered}`;
-    }
-
-    function endQuiz() {
-      current = null;
-      const percent = answered === 0 ? 0 : Math.round((correctCount / answered) * 100);
-      questionEl.textContent = `Quiz finished. Final score: ${percent} / 100`;
-      messageEl.textContent = 'Click "Restart quiz" to play again.';
-      resetZoom();
-    }
-
-    function resetZoom() {
-      if (!svgRoot || !originalViewBox) return;
-      svgRoot.setAttribute('viewBox', originalViewBox.join(' '));
-    }
-
-    function zoomToElement(el) {
-      if (!svgRoot) return;
-      const bbox = el.getBBox();
-      const padding = 10;
-
-      const x = bbox.x - padding;
-      const y = bbox.y - padding;
-      const w = bbox.width + padding * 2;
-      const h = bbox.height + padding * 2;
-
-      svgRoot.setAttribute('viewBox', `${x} ${y} ${w} ${h}`);
-    }
-
-    resetZoomBtn.addEventListener('click', resetZoom);
-    restartBtn.addEventListener('click', startQuiz);
-  </script>
 </body>
 </html>

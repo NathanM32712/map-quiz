@@ -1,128 +1,288 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Map Click Test</title>
+  <meta charset="UTF-8" />
+  <title>World Map Quiz</title>
   <style>
     body {
+      font-family: system-ui, sans-serif;
       margin: 0;
       display: flex;
+      flex-direction: column;
       height: 100vh;
-      background: #111;
-      color: #eee;
-      font-family: Arial, sans-serif;
     }
-    #info {
-      width: 260px;
-      background: #222;
-      padding: 15px;
-      box-sizing: border-box;
-      font-size: 18px;
-    }
-    #map {
-      flex: 1;
-      background: #000;
+
+    header {
+      padding: 10px 16px;
+      background: #111827;
+      color: #e5e7eb;
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
     }
-    #svgMap {
+
+    #quiz-info {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    #question {
+      font-weight: 600;
+    }
+
+    #score {
+      font-weight: 600;
+    }
+
+    #controls {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button {
+      padding: 4px 10px;
+      font-size: 13px;
+      border-radius: 4px;
+      border: 1px solid #4b5563;
+      background: #1f2937;
+      color: #e5e7eb;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #374151;
+    }
+
+    #message {
+      font-size: 13px;
+      min-width: 160px;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #0f172a;
+    }
+
+    #map-container {
+      width: 90vw;
+      height: 80vh;
+      max-width: 1200px;
+      border: 1px solid #4b5563;
+      background: #020617;
+    }
+
+    #map-container object {
       width: 100%;
       height: 100%;
-      border: none;
+      display: block;
     }
-    .highlight {
-      stroke: #ffd54a !important;
-      stroke-width: 2 !important;
+
+    /* Highlight hovered country */
+    .country-hover {
+      stroke: #facc15 !important;
+      stroke-width: 1.5 !important;
+      cursor: pointer;
+    }
+
+    /* Correct / wrong flash */
+    .correct {
+      fill: #22c55e !important;
+    }
+
+    .wrong {
+      fill: #ef4444 !important;
     }
   </style>
 </head>
 <body>
+  <header>
+    <div id="quiz-info">
+      <div id="question">Loading map…</div>
+      <div id="score">Score: 0 / 0</div>
+    </div>
+    <div id="controls">
+      <button id="resetZoomBtn">Reset zoom</button>
+      <button id="restartBtn">Restart quiz</button>
+      <div id="message"></div>
+    </div>
+  </header>
 
-<div id="info">
-  <h2>Clicked Country:</h2>
-  <div id="countryName">None</div>
-</div>
+  <main>
+    <div id="map-container">
+      <!-- Make sure world.svg is in the same folder as this HTML file -->
+      <object id="worldMap" type="image/svg+xml" data="world.svg"></object>
+    </div>
+  </main>
 
-<div id="map">
-  <object id="svgMap" data="world.svg" type="image/svg+xml"></object>
-</div>
+  <script>
+    const worldObject = document.getElementById('worldMap');
+    const questionEl = document.getElementById('question');
+    const scoreEl = document.getElementById('score');
+    const messageEl = document.getElementById('message');
+    const resetZoomBtn = document.getElementById('resetZoomBtn');
+    const restartBtn = document.getElementById('restartBtn');
 
-<script>
-const nameMap = {
-"AF":"Afghanistan","AL":"Albania","DZ":"Algeria","AI":"Anguilla","AM":"Armenia","AW":"Aruba","AT":"Austria","BH":"Bahrain","BD":"Bangladesh","BB":"Barbados","BY":"Belarus","BE":"Belgium","BZ":"Belize","BJ":"Benin","BM":"Bermuda","BT":"Bhutan","BO":"Bolivia","BA":"Bosnia and Herzegovina","BW":"Botswana","BR":"Brazil","VG":"British Virgin Islands","BN":"Brunei Darussalam","BG":"Bulgaria","BF":"Burkina Faso","BI":"Burundi","KH":"Cambodia","CM":"Cameroon","CF":"Central African Republic","TD":"Chad","CO":"Colombia","CR":"Costa Rica","HR":"Croatia","CU":"Cuba","CW":"Curaçao","CZ":"Czech Republic","CI":"Côte d'Ivoire","KP":"North Korea","CD":"Democratic Republic of the Congo","DJ":"Djibouti","DM":"Dominica","DO":"Dominican Republic","EC":"Ecuador","EG":"Egypt","SV":"El Salvador","GQ":"Equatorial Guinea","ER":"Eritrea","EE":"Estonia","ET":"Ethiopia","FI":"Finland","GF":"French Guiana","GA":"Gabon","GE":"Georgia","DE":"Germany","GH":"Ghana","GL":"Greenland","GD":"Grenada","GU":"Guam","GT":"Guatemala","GN":"Guinea","GW":"Guinea-Bissau","GY":"Guyana","HT":"Haiti","HN":"Honduras","HU":"Hungary","IS":"Iceland","IN":"India","IR":"Iran","IQ":"Iraq","IE":"Ireland","IL":"Israel","JM":"Jamaica","JO":"Jordan","KZ":"Kazakhstan","KE":"Kenya","XK":"Kosovo","KW":"Kuwait","KG":"Kyrgyzstan","LA":"Laos","LV":"Latvia","LB":"Lebanon","LS":"Lesotho","LR":"Liberia","LY":"Libya","LT":"Lithuania","LU":"Luxembourg","MK":"North Macedonia","MG":"Madagascar","MW":"Malawi","MV":"Maldives","ML":"Mali","MH":"Marshall Islands","MQ":"Martinique","MR":"Mauritania","YT":"Mayotte","MX":"Mexico","MD":"Moldova","MN":"Mongolia","ME":"Montenegro","MS":"Montserrat","MA":"Morocco","MZ":"Mozambique","MM":"Myanmar","NA":"Namibia","NR":"Nauru","NP":"Nepal","NL":"Netherlands","NI":"Nicaragua","NE":"Niger","NG":"Nigeria","PK":"Pakistan","PW":"Palau","PS":"Palestine","PA":"Panama","PY":"Paraguay","PE":"Peru","PL":"Poland","PT":"Portugal","QA":"Qatar","CG":"Republic of the Congo","KR":"South Korea","RE":"Reunion","RO":"Romania","RW":"Rwanda","LC":"Saint Lucia","VC":"Saint Vincent and the Grenadines","SA":"Saudi Arabia","SN":"Senegal","RS":"Serbia","SL":"Sierra Leone","SK":"Slovakia","SI":"Slovenia","SO":"Somalia","ZA":"South Africa","SS":"South Sudan","ES":"Spain","LK":"Sri Lanka","SD":"Sudan","SR":"Suriname","SZ":"Eswatini","SE":"Sweden","CH":"Switzerland","SY":"Syria","TW":"Taiwan","TJ":"Tajikistan","TZ":"Tanzania","TH":"Thailand","GM":"The Gambia","TL":"Timor-Leste","TG":"Togo","TN":"Tunisia","TM":"Turkmenistan","TV":"Tuvalu","UG":"Uganda","UA":"Ukraine","AE":"United Arab Emirates","UY":"Uruguay","UZ":"Uzbekistan","VE":"Venezuela","VN":"Vietnam","EH":"Western Sahara","YE":"Yemen","ZM":"Zambia","ZW":"Zimbabwe"
-};
+    let svgRoot = null;
+    let originalViewBox = null;
 
-let svgDoc = null;
-let svgRoot = null;
-let initialViewBox = null;
+    // Quiz state
+    let countries = [];      // { id, name, element }
+    let remaining = [];      // queue of country objects
+    let current = null;      // current target country
+    let correctCount = 0;
+    let totalQuestions = 10; // number of questions per round
+    let answered = 0;
 
-function parseViewBox(vb){
-  const p = vb.split(/\s+/).map(Number);
-  return {x:p[0], y:p[1], w:p[2], h:p[3]};
-}
+    worldObject.addEventListener('load', () => {
+      svgRoot = worldObject.contentDocument.documentElement;
 
-function animateViewBox(from, to, duration = 500){
-  const start = performance.now();
-  function step(now){
-    const t = Math.min(1, (now - start) / duration);
-    const x = from.x + (to.x - from.x) * t;
-    const y = from.y + (to.y - from.y) * t;
-    const w = from.w + (to.w - from.w) * t;
-    const h = from.h + (to.h - from.h) * t;
-    svgRoot.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
-    if(t < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
-}
+      // Save original viewBox for reset
+      const vb = svgRoot.getAttribute('viewBox');
+      if (vb) {
+        originalViewBox = vb.split(' ').map(Number);
+      } else {
+        // Fallback: create a viewBox from width/height
+        const w = parseFloat(svgRoot.getAttribute('width')) || 1000;
+        const h = parseFloat(svgRoot.getAttribute('height')) || 500;
+        originalViewBox = [0, 0, w, h];
+        svgRoot.setAttribute('viewBox', originalViewBox.join(' '));
+      }
 
-function zoomTo(code){
-  const el = svgDoc.querySelector(`[class="${code}"], [id="${code}"]`);
-  if(!el) return;
+      // Collect country paths
+      // Assumes each country is a <path> (or <g>) with id or data-name
+      const all = svgRoot.querySelectorAll('path, g');
+      countries = [];
+      all.forEach(el => {
+        const id = el.id || el.getAttribute('data-id');
+        const name = el.getAttribute('data-name') || id;
+        if (!id || !name) return;
+        countries.push({ id, name, element: el });
+      });
 
-  const b = el.getBBox();
-  const pad = 1.5;
+      if (countries.length === 0) {
+        questionEl.textContent = 'No countries found in SVG. Add ids/data-name to paths.';
+        return;
+      }
 
-  const cx = b.x + b.width/2;
-  const cy = b.y + b.height/2;
-
-  const w = b.width * pad;
-  const h = b.height * pad;
-
-  const x = cx - w/2;
-  const y = cy - h/2;
-
-  const current = parseViewBox(svgRoot.getAttribute("viewBox"));
-  const target = {x, y, w, h};
-
-  animateViewBox(current, target, 500);
-}
-
-document.getElementById("svgMap").addEventListener("load", () => {
-  svgDoc = document.getElementById("svgMap").contentDocument;
-  svgRoot = svgDoc.documentElement;
-
-  initialViewBox = parseViewBox(svgRoot.getAttribute("viewBox"));
-
-  const paths = svgDoc.querySelectorAll("path");
-
-  paths.forEach(p => {
-    p.style.cursor = "pointer";
-
-    p.addEventListener("click", () => {
-      const code = (p.getAttribute("class") || p.getAttribute("id") || "").trim();
-      const name = nameMap[code] || code;
-
-      document.getElementById("countryName").textContent = name;
-
-      svgDoc.querySelectorAll("path").forEach(x => x.classList.remove("highlight"));
-      p.classList.add("highlight");
-
-      zoomTo(code);
+      attachCountryEvents();
+      startQuiz();
     });
-  });
-});
-</script>
 
+    function attachCountryEvents() {
+      countries.forEach(c => {
+        const el = c.element;
+
+        el.style.transition = 'fill 0.2s, stroke 0.2s';
+
+        el.addEventListener('mouseenter', () => {
+          el.classList.add('country-hover');
+        });
+
+        el.addEventListener('mouseleave', () => {
+          el.classList.remove('country-hover');
+        });
+
+        el.addEventListener('click', () => {
+          handleCountryClick(c);
+        });
+      });
+    }
+
+    function startQuiz() {
+      correctCount = 0;
+      answered = 0;
+      messageEl.textContent = '';
+      resetZoom();
+
+      // Pick a random subset of countries for the quiz
+      const shuffled = [...countries].sort(() => Math.random() - 0.5);
+      remaining = shuffled.slice(0, Math.min(totalQuestions, shuffled.length));
+
+      nextQuestion();
+      updateScore();
+    }
+
+    function nextQuestion() {
+      if (remaining.length === 0) {
+        endQuiz();
+        return;
+      }
+      current = remaining.shift();
+      questionEl.textContent = `Click on: ${current.name}`;
+    }
+
+    function handleCountryClick(clicked) {
+      if (!current) return;
+
+      // Zoom into clicked country
+      zoomToElement(clicked.element);
+
+      // Check correctness
+      answered++;
+      if (clicked.id === current.id) {
+        correctCount++;
+        flashCountry(clicked.element, 'correct');
+        messageEl.textContent = 'Correct!';
+      } else {
+        flashCountry(clicked.element, 'wrong');
+        messageEl.textContent = `Wrong, that was ${clicked.name}.`;
+      }
+
+      updateScore();
+
+      // Next question after short delay
+      setTimeout(() => {
+        if (remaining.length > 0) {
+          nextQuestion();
+        } else {
+          endQuiz();
+        }
+      }, 900);
+    }
+
+    function flashCountry(el, cls) {
+      el.classList.add(cls);
+      setTimeout(() => el.classList.remove(cls), 700);
+    }
+
+    function updateScore() {
+      scoreEl.textContent = `Score: ${correctCount} / ${answered}`;
+    }
+
+    function endQuiz() {
+      current = null;
+      const percent = answered === 0 ? 0 : Math.round((correctCount / answered) * 100);
+      questionEl.textContent = `Quiz finished. Final score: ${percent} / 100`;
+      messageEl.textContent = 'Click "Restart quiz" to play again.';
+      resetZoom();
+    }
+
+    function resetZoom() {
+      if (!svgRoot || !originalViewBox) return;
+      svgRoot.setAttribute('viewBox', originalViewBox.join(' '));
+    }
+
+    function zoomToElement(el) {
+      if (!svgRoot) return;
+      const bbox = el.getBBox();
+      const padding = 10;
+
+      const x = bbox.x - padding;
+      const y = bbox.y - padding;
+      const w = bbox.width + padding * 2;
+      const h = bbox.height + padding * 2;
+
+      svgRoot.setAttribute('viewBox', `${x} ${y} ${w} ${h}`);
+    }
+
+    resetZoomBtn.addEventListener('click', resetZoom);
+    restartBtn.addEventListener('click', startQuiz);
+  </script>
 </body>
 </html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>World Map Quiz</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      height: 100vh;
+      font-family: Arial, sans-serif;
+      background: #111;
+      color: white;
+    }
+    #sidebar {
+      width: 260px;
+      background: #222;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    #map {
+      flex: 1;
+      background: black;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    object {
+      width: 100%;
+      height: 100%;
+    }
+    button {
+      padding: 8px;
+      background: #444;
+      border: 1px solid #666;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #555;
+    }
+    .highlight {
+      stroke: yellow !important;
+      stroke-width: 2 !important;
+    }
+  </style>
+</head>
+<body>
+
+<div id="sidebar">
+  <h2>World Quiz</h2>
+
+  <label>Continent:</label>
+  <select id="continentSelect">
+    <option value="World">World</option>
+    <option value="North America">North America</option>
+    <option value="South America">South America</option>
+    <option value="Europe">Europe</option>
+    <option value="Africa">Africa</option>
+    <option value="Asia">Asia</option>
+    <option value="Oceania">Oceania</option>
+  </select>
+
+  <button id="nextBtn">Next Country</button>
+
+  <div>
+    <strong>Find:</strong> <span id="target">---</span>
+  </div>
+
+  <div id="result"></div>
+</div>
+
+<div id="map">
+  <object id="svgMap" data="world.svg" type="image/svg+xml"></object>
+</div>
+
+<script>
+// ------------------------------
+// COUNTRY LIST BY CONTINENT
+// ------------------------------
+const continents = {
+  "North America": [
+    "United States","Canada","Mexico","Guatemala","Belize","El Salvador","Honduras",
+    "Nicaragua","Costa Rica","Panama","Cuba","Jamaica","Haiti","Dominican Republic",
+    "The Bahamas","Barbados","Trinidad and Tobago","Saint Lucia",
+    "Saint Vincent and the Grenadines","Grenada","Antigua and Barbuda",
+    "Dominica","Saint Kitts and Nevis"
+  ],
+  "South America": [
+    "Brazil","Argentina","Chile","Uruguay","Paraguay","Bolivia","Peru","Ecuador",
+    "Colombia","Venezuela","Guyana","Suriname","French Guiana"
+  ],
+  "Europe": [
+    "United Kingdom","Ireland","France","Spain","Portugal","Germany","Italy",
+    "Switzerland","Austria","Belgium","Netherlands","Luxembourg","Denmark","Norway",
+    "Sweden","Finland","Iceland","Poland","Czech Republic","Slovakia","Hungary",
+    "Romania","Bulgaria","Greece","Croatia","Slovenia","Bosnia and Herzegovina",
+    "Serbia","Montenegro","Kosovo","Albania","North Macedonia","Estonia","Latvia",
+    "Lithuania","Belarus","Ukraine","Moldova"
+  ],
+  "Africa": [
+    "Algeria","Tunisia","Libya","Egypt","Morocco","Western Sahara","Mauritania","Mali",
+    "Niger","Chad","Sudan","South Sudan","Eritrea","Djibouti","Ethiopia","Somalia",
+    "Senegal","Gambia","Guinea-Bissau","Guinea","Sierra Leone","Liberia",
+    "Ivory Coast","Ghana","Togo","Benin","Nigeria","Cameroon",
+    "Central African Republic","Equatorial Guinea","Gabon","Republic of the Congo",
+    "Democratic Republic of the Congo","Uganda","Rwanda","Burundi","Kenya","Tanzania",
+    "Angola","Zambia","Malawi","Mozambique","Zimbabwe","Botswana","Namibia",
+    "South Africa","Lesotho","Eswatini","Madagascar","Seychelles","Comoros",
+    "Mauritius","Cape Verde"
+  ],
+  "Asia": [
+    "Russia","Turkey","Georgia","Armenia","Azerbaijan","Kazakhstan","Uzbekistan",
+    "Turkmenistan","Kyrgyzstan","Tajikistan","China","Mongolia","Japan","North Korea",
+    "South Korea","Taiwan","India","Pakistan","Bangladesh","Nepal","Bhutan",
+    "Sri Lanka","Maldives","Myanmar","Thailand","Laos","Cambodia","Vietnam","Malaysia",
+    "Singapore","Indonesia","Philippines","Brunei","East Timor","Saudi Arabia","Yemen",
+    "Oman","United Arab Emirates","Qatar","Bahrain","Kuwait","Iraq","Iran","Syria",
+    "Jordan","Israel","Lebanon","Afghanistan"
+  ],
+  "Oceania": [
+    "Australia","New Zealand","Papua New Guinea","Fiji","Solomon Islands","Vanuatu",
+    "Samoa","Tonga","Kiribati","Tuvalu","Nauru","Palau","Micronesia","Marshall Islands"
+  ]
+};
+
+// ------------------------------
+// QUIZ LOGIC
+// ------------------------------
+let svgDoc = null;
+let currentCountry = null;
+
+document.getElementById("svgMap").addEventListener("load", () => {
+  svgDoc = document.getElementById("svgMap").contentDocument;
+});
+
+function pickCountry() {
+  const cont = document.getElementById("continentSelect").value;
+
+  let pool = [];
+  if (cont === "World") {
+    Object.values(continents).forEach(arr => pool.push(...arr));
+  } else {
+    pool = continents[cont];
+  }
+
+  currentCountry = pool[Math.floor(Math.random() * pool.length)];
+  document.getElementById("target").textContent = currentCountry;
+
+  highlightNone();
+}
+
+function highlightNone() {
+  if (!svgDoc) return;
+  svgDoc.querySelectorAll("path").forEach(p => {
+    p.classList.remove("highlight");
+  });
+}
+
+function setupClicks() {
+  if (!svgDoc) return;
+
+  svgDoc.querySelectorAll("path").forEach(p => {
+    p.addEventListener("click", () => {
+      const name = p.getAttribute("class") || p.getAttribute("id");
+
+      if (!name) return;
+
+      if (name.toLowerCase() === currentCountry.toLowerCase()) {
+        p.classList.add("highlight");
+        document.getElementById("result").textContent = "Correct!";
+      } else {
+        document.getElementById("result").textContent = "Wrong!";
+      }
+    });
+  });
+}
+
+document.getElementById("nextBtn").onclick = pickCountry;
+
+setTimeout(setupClicks, 1000);
+pickCountry();
+</script>
+
+</body>
+</html>

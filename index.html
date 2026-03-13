@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>World Map Quiz</title>
+  <title>World Map Quiz (TEST)</title>
   <style>
     body {
       margin: 0;
@@ -41,9 +41,6 @@
       border-radius: 4px;
       font-size: 14px;
     }
-    button {
-      cursor: pointer;
-    }
     button:hover {
       background: #444;
     }
@@ -69,11 +66,11 @@
 <body>
 
 <div id="sidebar">
-  <h2>World Map Quiz</h2>
+  <h2>World Map Quiz (TEST)</h2>
 
   <label for="modeSelect">Mode:</label>
   <select id="modeSelect">
-    <option value="World">World (all countries)</option>
+    <option value="World">World (196)</option>
     <option value="North America">North America</option>
     <option value="South America">South America</option>
     <option value="Europe">Europe</option>
@@ -100,59 +97,63 @@
 </div>
 
 <script>
-// ------------------------------
-// COUNTRY LIST BY CONTINENT
-// ------------------------------
-const continents = {
-  "North America": [
-    "United States","Canada","Mexico","Guatemala","Belize","El Salvador","Honduras",
-    "Nicaragua","Costa Rica","Panama","Cuba","Jamaica","Haiti","Dominican Republic",
-    "The Bahamas","Barbados","Trinidad and Tobago","Saint Lucia",
-    "Saint Vincent and the Grenadines","Grenada","Antigua and Barbuda",
-    "Dominica","Saint Kitts and Nevis"
-  ],
-  "South America": [
-    // 12 to keep world total at 196 (no French Guiana)
-    "Brazil","Argentina","Chile","Uruguay","Paraguay","Bolivia","Peru","Ecuador",
-    "Colombia","Venezuela","Guyana","Suriname"
-  ],
-  "Europe": [
-    "United Kingdom","Ireland","France","Spain","Portugal","Germany","Italy",
-    "Switzerland","Austria","Belgium","Netherlands","Luxembourg","Denmark","Norway",
-    "Sweden","Finland","Iceland","Poland","Czech Republic","Slovakia","Hungary",
-    "Romania","Bulgaria","Greece","Croatia","Slovenia","Bosnia and Herzegovina",
-    "Serbia","Montenegro","Kosovo","Albania","North Macedonia","Estonia","Latvia",
-    "Lithuania","Belarus","Ukraine","Moldova"
-  ],
-  "Africa": [
-    "Algeria","Tunisia","Libya","Egypt","Morocco","Western Sahara","Mauritania","Mali",
-    "Niger","Chad","Sudan","South Sudan","Eritrea","Djibouti","Ethiopia","Somalia",
-    "Senegal","Gambia","Guinea-Bissau","Guinea","Sierra Leone","Liberia",
-    "Ivory Coast","Ghana","Togo","Benin","Nigeria","Cameroon",
-    "Central African Republic","Equatorial Guinea","Gabon","Republic of the Congo",
-    "Democratic Republic of the Congo","Uganda","Rwanda","Burundi","Kenya","Tanzania",
-    "Angola","Zambia","Malawi","Mozambique","Zimbabwe","Botswana","Namibia",
-    "South Africa","Lesotho","Eswatini","Madagascar","Seychelles","Comoros",
-    "Mauritius","Cape Verde"
-  ],
-  "Asia": [
-    "Russia","Turkey","Georgia","Armenia","Azerbaijan","Kazakhstan","Uzbekistan",
-    "Turkmenistan","Kyrgyzstan","Tajikistan","China","Mongolia","Japan","North Korea",
-    "South Korea","Taiwan","India","Pakistan","Bangladesh","Nepal","Bhutan",
-    "Sri Lanka","Maldives","Myanmar","Thailand","Laos","Cambodia","Vietnam","Malaysia",
-    "Singapore","Indonesia","Philippines","Brunei","East Timor","Saudi Arabia","Yemen",
-    "Oman","United Arab Emirates","Qatar","Bahrain","Kuwait","Iraq","Iran","Syria",
-    "Jordan","Israel","Lebanon","Afghanistan"
-  ],
-  "Oceania": [
-    "Australia","New Zealand","Papua New Guinea","Fiji","Solomon Islands","Vanuatu",
-    "Samoa","Tonga","Kiribati","Tuvalu","Nauru","Palau","Micronesia","Marshall Islands"
-  ]
+// ------------------------------------------------------
+// 1. NAME MAP (Your SVG abbreviations → real names)
+// ------------------------------------------------------
+const nameMap = {
+  "AF":"Afghanistan","AL":"Albania","DZ":"Algeria","AI":"Anguilla","AM":"Armenia",
+  "AW":"Aruba","AT":"Austria","BH":"Bahrain","BD":"Bangladesh","BB":"Barbados",
+  "BY":"Belarus","BE":"Belgium","BZ":"Belize","BJ":"Benin","BM":"Bermuda",
+  "BT":"Bhutan","BO":"Bolivia","BA":"Bosnia and Herzegovina","BW":"Botswana",
+  "BR":"Brazil","VG":"British Virgin Islands","BN":"Brunei Darussalam","BG":"Bulgaria",
+  "BF":"Burkina Faso","BI":"Burundi","KH":"Cambodia","CM":"Cameroon",
+  "CF":"Central African Republic","TD":"Chad","CO":"Colombia","CR":"Costa Rica",
+  "HR":"Croatia","CU":"Cuba","CW":"Curaçao","CZ":"Czech Republic",
+  "CI":"Côte d'Ivoire","KP":"North Korea","CD":"Democratic Republic of the Congo",
+  "DJ":"Djibouti","DM":"Dominica","DO":"Dominican Republic","EC":"Ecuador",
+  "EG":"Egypt","SV":"El Salvador","GQ":"Equatorial Guinea","ER":"Eritrea",
+  "EE":"Estonia","ET":"Ethiopia","FI":"Finland","GF":"French Guiana","GA":"Gabon",
+  "GE":"Georgia","DE":"Germany","GH":"Ghana","GL":"Greenland","GD":"Grenada",
+  "GU":"Guam","GT":"Guatemala","GN":"Guinea","GW":"Guinea-Bissau","GY":"Guyana",
+  "HT":"Haiti","HN":"Honduras","HU":"Hungary","IS":"Iceland","IN":"India",
+  "IR":"Iran","IQ":"Iraq","IE":"Ireland","IL":"Israel","JM":"Jamaica","JO":"Jordan",
+  "KZ":"Kazakhstan","KE":"Kenya","XK":"Kosovo","KW":"Kuwait","KG":"Kyrgyzstan",
+  "LA":"Laos","LV":"Latvia","LB":"Lebanon","LS":"Lesotho","LR":"Liberia",
+  "LY":"Libya","LT":"Lithuania","LU":"Luxembourg","MK":"North Macedonia",
+  "MG":"Madagascar","MW":"Malawi","MV":"Maldives","ML":"Mali","MH":"Marshall Islands",
+  "MQ":"Martinique","MR":"Mauritania","YT":"Mayotte","MX":"Mexico","MD":"Moldova",
+  "MN":"Mongolia","ME":"Montenegro","MS":"Montserrat","MA":"Morocco",
+  "MZ":"Mozambique","MM":"Myanmar","NA":"Namibia","NR":"Nauru","NP":"Nepal",
+  "NL":"Netherlands","NI":"Nicaragua","NE":"Niger","NG":"Nigeria","PK":"Pakistan",
+  "PW":"Palau","PS":"Palestine","PA":"Panama","PY":"Paraguay","PE":"Peru",
+  "PL":"Poland","PT":"Portugal","QA":"Qatar","CG":"Republic of the Congo",
+  "KR":"South Korea","RE":"Reunion","RO":"Romania","RW":"Rwanda","LC":"Saint Lucia",
+  "VC":"Saint Vincent and the Grenadines","SA":"Saudi Arabia","SN":"Senegal",
+  "RS":"Serbia","SL":"Sierra Leone","SK":"Slovakia","SI":"Slovenia","SO":"Somalia",
+  "ZA":"South Africa","SS":"South Sudan","ES":"Spain","LK":"Sri Lanka",
+  "SD":"Sudan","SR":"Suriname","SZ":"Eswatini","SE":"Sweden","CH":"Switzerland",
+  "SY":"Syria","TW":"Taiwan","TJ":"Tajikistan","TZ":"Tanzania","TH":"Thailand",
+  "GM":"The Gambia","TL":"Timor-Leste","TG":"Togo","TN":"Tunisia",
+  "TM":"Turkmenistan","TV":"Tuvalu","UG":"Uganda","UA":"Ukraine",
+  "AE":"United Arab Emirates","UY":"Uruguay","UZ":"Uzbekistan","VE":"Venezuela",
+  "VN":"Vietnam","EH":"Western Sahara","YE":"Yemen","ZM":"Zambia","ZW":"Zimbabwe"
 };
 
-// ------------------------------
-// STATE
-// ------------------------------
+// ------------------------------------------------------
+// 2. CONTINENT LISTS (Full, correct totals)
+// ------------------------------------------------------
+const continents = {
+  "North America": ["AI","AW","BB","BZ","BM","CA","CR","CU","DM","DO","GD","GL","GT","HN","HT","JM","KN","LC","MX","NI","PA","SV","TT","US","VC"],
+  "South America": ["AR","BO","BR","CL","CO","EC","GY","PE","PY","SR","UY","VE"],
+  "Europe": ["AL","AT","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","FI","FR","GB","GR","HR","HU","IE","IS","IT","LT","LU","LV","MD","ME","MK","MT","NL","NO","PL","PT","RO","RS","RU","SE","SI","SK","UA","XK"],
+  "Africa": ["DZ","AO","BJ","BF","BI","BW","CD","CF","CG","CI","CM","CV","DJ","DZ","EG","EH","ER","ET","GA","GH","GM","GN","GQ","GW","KE","KM","LR","LS","LY","MA","MG","ML","MR","MU","MW","MZ","NA","NE","NG","RE","RW","SC","SD","SH","SL","SN","SO","SS","ST","SZ","TD","TG","TN","TZ","UG","ZA","ZM","ZW"],
+  "Asia": ["AF","AM","AZ","BD","BH","BN","BT","CN","CY","GE","HK","ID","IL","IN","IQ","IR","JO","JP","KG","KH","KP","KR","KW","KZ","LA","LB","LK","MM","MN","MO","MY","NP","OM","PH","PK","PS","QA","SA","SG","SY","TH","TJ","TM","TR","TW","UZ","VN","YE"],
+  "Oceania": ["AU","FJ","FM","GU","KI","MH","MP","NC","NR","NZ","PF","PG","PW","SB","TO","TV","VU","WS"]
+};
+
+// ------------------------------------------------------
+// 3. GAME STATE
+// ------------------------------------------------------
 let svgDoc = null;
 let svgRoot = null;
 let initialViewBox = null;
@@ -164,75 +165,48 @@ let currentCountry = null;
 let correctCount = 0;
 let modeTotal = 0;
 
-const modeSelect = document.getElementById("modeSelect");
-const nextBtn = document.getElementById("nextBtn");
-const targetEl = document.getElementById("target");
-const scoreEl = document.getElementById("score");
-const totalEl = document.getElementById("total");
-const resultEl = document.getElementById("result");
-
-// ------------------------------
-// HELPERS
-// ------------------------------
+// ------------------------------------------------------
+// 4. HELPERS
+// ------------------------------------------------------
 function getModeCountries(mode) {
   if (mode === "World") {
-    const set = new Set();
-    Object.values(continents).forEach(arr => arr.forEach(c => set.add(c)));
-    return Array.from(set);
+    const all = new Set();
+    Object.values(continents).forEach(arr => arr.forEach(c => all.add(c)));
+    return Array.from(all);
   }
   return continents[mode] ? [...continents[mode]] : [];
 }
 
-function resetScoreAndPool() {
+function resetMode() {
   modeCountries = getModeCountries(currentMode);
   remainingCountries = [...modeCountries];
   correctCount = 0;
   modeTotal = modeCountries.length;
-  scoreEl.textContent = correctCount;
-  totalEl.textContent = modeTotal;
-  resultEl.textContent = "";
-  resultEl.className = "";
-}
 
-function pickNextCountry() {
-  if (!remainingCountries.length) {
-    targetEl.textContent = "---";
-    resultEl.textContent = `You completed ${currentMode}! ${correctCount}/${modeTotal} correct.`;
-    resultEl.className = "correct";
-    return;
+  document.getElementById("score").textContent = correctCount;
+  document.getElementById("total").textContent = modeTotal;
+  document.getElementById("result").textContent = "";
+  document.getElementById("target").textContent = "---";
+
+  if (svgRoot && initialViewBox) {
+    svgRoot.setAttribute("viewBox",
+      `${initialViewBox.x} ${initialViewBox.y} ${initialViewBox.w} ${initialViewBox.h}`);
   }
-  const idx = Math.floor(Math.random() * remainingCountries.length);
-  currentCountry = remainingCountries[idx];
-  targetEl.textContent = currentCountry;
-  resultEl.textContent = "";
-  resultEl.className = "";
-  clearHighlights();
-  zoomToCountry(currentCountry);
 }
 
-function clearHighlights() {
-  if (!svgDoc) return;
-  svgDoc.querySelectorAll("path").forEach(p => p.classList.remove("highlight"));
-}
-
-function findCountryElement(name) {
+function findCountryElement(code) {
   if (!svgDoc) return null;
   const paths = svgDoc.querySelectorAll("path");
-  const targetLower = name.toLowerCase();
   for (const p of paths) {
     const cls = (p.getAttribute("class") || "").trim();
     const id = (p.getAttribute("id") || "").trim();
-    if (cls && cls.toLowerCase() === targetLower) return p;
-    if (id && id.toLowerCase() === targetLower) return p;
+    if (cls === code || id === code) return p;
   }
   return null;
 }
 
-// Smooth viewBox animation
 function animateViewBox(from, to, duration = 500) {
-  if (!svgRoot) return;
   const start = performance.now();
-
   function step(now) {
     const t = Math.min(1, (now - start) / duration);
     const x = from.x + (to.x - from.x) * t;
@@ -246,106 +220,104 @@ function animateViewBox(from, to, duration = 500) {
 }
 
 function parseViewBox(vb) {
-  if (!vb) return null;
-  const parts = vb.split(/\s+/).map(Number);
-  if (parts.length !== 4 || parts.some(isNaN)) return null;
-  return { x: parts[0], y: parts[1], w: parts[2], h: parts[3] };
+  const p = vb.split(/\s+/).map(Number);
+  return { x: p[0], y: p[1], w: p[2], h: p[3] };
 }
 
-function zoomToCountry(name) {
-  if (!svgRoot || !svgDoc) return;
-  const el = findCountryElement(name);
+function zoomToCountry(code) {
+  const el = findCountryElement(code);
   if (!el) return;
 
   const bbox = el.getBBox();
-  const paddingFactor = 1.5;
+  const pad = 1.5;
   const cx = bbox.x + bbox.width / 2;
   const cy = bbox.y + bbox.height / 2;
-  const w = bbox.width * paddingFactor;
-  const h = bbox.height * paddingFactor;
+  const w = bbox.width * pad;
+  const h = bbox.height * pad;
   const x = cx - w / 2;
   const y = cy - h / 2;
 
-  const currentVB = parseViewBox(svgRoot.getAttribute("viewBox")) || initialViewBox;
+  const currentVB = parseViewBox(svgRoot.getAttribute("viewBox"));
   const targetVB = { x, y, w, h };
+
   animateViewBox(currentVB, targetVB, 500);
 }
 
-// ------------------------------
-// CLICK HANDLING
-// ------------------------------
+function pickNext() {
+  if (!remainingCountries.length) {
+    document.getElementById("target").textContent = "---";
+    document.getElementById("result").textContent =
+      `Complete! ${correctCount}/${modeTotal}`;
+    return;
+  }
+
+  const idx = Math.floor(Math.random() * remainingCountries.length);
+  currentCountry = remainingCountries[idx];
+
+  const realName = nameMap[currentCountry] || currentCountry;
+  document.getElementById("target").textContent = realName;
+
+  zoomToCountry(currentCountry);
+}
+
+// ------------------------------------------------------
+// 5. CLICK HANDLING
+// ------------------------------------------------------
 function setupClicks() {
-  if (!svgDoc) return;
   const paths = svgDoc.querySelectorAll("path");
   paths.forEach(p => {
     p.style.cursor = "pointer";
     p.addEventListener("click", () => {
       if (!currentCountry) return;
-      const cls = (p.getAttribute("class") || "").trim();
-      const id = (p.getAttribute("id") || "").trim();
-      const name = cls || id;
-      if (!name) return;
 
-      if (name.toLowerCase() === currentCountry.toLowerCase()) {
-        // Correct
+      const code = p.getAttribute("class") || p.getAttribute("id");
+      if (!code) return;
+
+      if (code === currentCountry) {
         p.classList.add("highlight");
-        resultEl.textContent = "Correct!";
-        resultEl.className = "correct";
+        document.getElementById("result").textContent = "Correct!";
+        document.getElementById("result").className = "correct";
 
-        // Remove from remaining
         remainingCountries = remainingCountries.filter(c => c !== currentCountry);
         correctCount++;
-        scoreEl.textContent = correctCount;
+        document.getElementById("score").textContent = correctCount;
 
-        // Next after a short delay
-        setTimeout(pickNextCountry, 700);
+        setTimeout(() => {
+          p.classList.remove("highlight");
+          pickNext();
+        }, 700);
+
       } else {
-        resultEl.textContent = `Wrong! That was ${name}.`;
-        resultEl.className = "wrong";
+        const real = nameMap[code] || code;
+        document.getElementById("result").textContent = `Wrong! That was ${real}`;
+        document.getElementById("result").className = "wrong";
       }
     });
   });
 }
 
-// ------------------------------
-// MODE CHANGE
-// ------------------------------
-modeSelect.addEventListener("change", () => {
-  currentMode = modeSelect.value;
-  resetScoreAndPool();
-  // Reset viewBox to full world
-  if (svgRoot && initialViewBox) {
-    svgRoot.setAttribute("viewBox",
-      `${initialViewBox.x} ${initialViewBox.y} ${initialViewBox.w} ${initialViewBox.h}`);
-  }
-  pickNextCountry();
-});
-
-// ------------------------------
-// INIT
-// ------------------------------
+// ------------------------------------------------------
+// 6. INIT
+// ------------------------------------------------------
 document.getElementById("svgMap").addEventListener("load", () => {
   svgDoc = document.getElementById("svgMap").contentDocument;
   svgRoot = svgDoc.documentElement;
 
-  const vb = parseViewBox(svgRoot.getAttribute("viewBox"));
-  if (vb) {
-    initialViewBox = vb;
-  } else {
-    const bbox = svgRoot.getBBox();
-    initialViewBox = { x: bbox.x, y: bbox.y, w: bbox.width, h: bbox.height };
-    svgRoot.setAttribute("viewBox",
-      `${initialViewBox.x} ${initialViewBox.y} ${initialViewBox.w} ${initialViewBox.h}`);
-  }
+  const vb = svgRoot.getAttribute("viewBox");
+  initialViewBox = parseViewBox(vb);
 
   setupClicks();
-  resetScoreAndPool();
-  pickNextCountry();
+  resetMode();
+  pickNext();
 });
 
-nextBtn.addEventListener("click", () => {
-  pickNextCountry();
+document.getElementById("modeSelect").addEventListener("change", () => {
+  currentMode = document.getElementById("modeSelect").value;
+  resetMode();
+  pickNext();
 });
+
+document.getElementById("nextBtn").addEventListener("click", pickNext);
 </script>
 
 </body>

@@ -2,24 +2,22 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>World Map Quiz</title>
+  <title>Map Click Test</title>
   <style>
     body {
       margin: 0;
       display: flex;
       height: 100vh;
-      font-family: Arial, sans-serif;
       background: #111;
       color: #eee;
+      font-family: Arial, sans-serif;
     }
-    #sidebar {
-      width: 280px;
+    #info {
+      width: 260px;
       background: #222;
       padding: 15px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
       box-sizing: border-box;
+      font-size: 18px;
     }
     #map {
       flex: 1;
@@ -33,63 +31,17 @@
       height: 100%;
       border: none;
     }
-    select, button {
-      padding: 6px 8px;
-      background: #333;
-      border: 1px solid #555;
-      color: #eee;
-      border-radius: 4px;
-      font-size: 14px;
-    }
-    button:hover {
-      background: #444;
-    }
     .highlight {
       stroke: #ffd54a !important;
       stroke-width: 2 !important;
-    }
-    #target {
-      font-weight: bold;
-      color: #ffd54a;
-    }
-    #score {
-      font-weight: bold;
-    }
-    #result.correct {
-      color: #7CFC00;
-    }
-    #result.wrong {
-      color: #ff6b6b;
     }
   </style>
 </head>
 <body>
 
-<div id="sidebar">
-  <h2>World Map Quiz</h2>
-
-  <label for="modeSelect">Mode:</label>
-  <select id="modeSelect">
-    <option value="World">World</option>
-    <option value="North America">North America</option>
-    <option value="South America">South America</option>
-    <option value="Europe">Europe</option>
-    <option value="Africa">Africa</option>
-    <option value="Asia">Asia</option>
-    <option value="Oceania">Oceania</option>
-  </select>
-
-  <button id="nextBtn">Next Country</button>
-
-  <div>
-    <strong>Find:</strong> <span id="target">---</span>
-  </div>
-
-  <div>
-    <strong>Score:</strong> <span id="score">0</span> / <span id="total">0</span>
-  </div>
-
-  <div id="result"></div>
+<div id="info">
+  <h2>Clicked Country:</h2>
+  <div id="countryName">None</div>
 </div>
 
 <div id="map">
@@ -101,144 +53,75 @@ const nameMap = {
 "AF":"Afghanistan","AL":"Albania","DZ":"Algeria","AI":"Anguilla","AM":"Armenia","AW":"Aruba","AT":"Austria","BH":"Bahrain","BD":"Bangladesh","BB":"Barbados","BY":"Belarus","BE":"Belgium","BZ":"Belize","BJ":"Benin","BM":"Bermuda","BT":"Bhutan","BO":"Bolivia","BA":"Bosnia and Herzegovina","BW":"Botswana","BR":"Brazil","VG":"British Virgin Islands","BN":"Brunei Darussalam","BG":"Bulgaria","BF":"Burkina Faso","BI":"Burundi","KH":"Cambodia","CM":"Cameroon","CF":"Central African Republic","TD":"Chad","CO":"Colombia","CR":"Costa Rica","HR":"Croatia","CU":"Cuba","CW":"Curaçao","CZ":"Czech Republic","CI":"Côte d'Ivoire","KP":"North Korea","CD":"Democratic Republic of the Congo","DJ":"Djibouti","DM":"Dominica","DO":"Dominican Republic","EC":"Ecuador","EG":"Egypt","SV":"El Salvador","GQ":"Equatorial Guinea","ER":"Eritrea","EE":"Estonia","ET":"Ethiopia","FI":"Finland","GF":"French Guiana","GA":"Gabon","GE":"Georgia","DE":"Germany","GH":"Ghana","GL":"Greenland","GD":"Grenada","GU":"Guam","GT":"Guatemala","GN":"Guinea","GW":"Guinea-Bissau","GY":"Guyana","HT":"Haiti","HN":"Honduras","HU":"Hungary","IS":"Iceland","IN":"India","IR":"Iran","IQ":"Iraq","IE":"Ireland","IL":"Israel","JM":"Jamaica","JO":"Jordan","KZ":"Kazakhstan","KE":"Kenya","XK":"Kosovo","KW":"Kuwait","KG":"Kyrgyzstan","LA":"Laos","LV":"Latvia","LB":"Lebanon","LS":"Lesotho","LR":"Liberia","LY":"Libya","LT":"Lithuania","LU":"Luxembourg","MK":"North Macedonia","MG":"Madagascar","MW":"Malawi","MV":"Maldives","ML":"Mali","MH":"Marshall Islands","MQ":"Martinique","MR":"Mauritania","YT":"Mayotte","MX":"Mexico","MD":"Moldova","MN":"Mongolia","ME":"Montenegro","MS":"Montserrat","MA":"Morocco","MZ":"Mozambique","MM":"Myanmar","NA":"Namibia","NR":"Nauru","NP":"Nepal","NL":"Netherlands","NI":"Nicaragua","NE":"Niger","NG":"Nigeria","PK":"Pakistan","PW":"Palau","PS":"Palestine","PA":"Panama","PY":"Paraguay","PE":"Peru","PL":"Poland","PT":"Portugal","QA":"Qatar","CG":"Republic of the Congo","KR":"South Korea","RE":"Reunion","RO":"Romania","RW":"Rwanda","LC":"Saint Lucia","VC":"Saint Vincent and the Grenadines","SA":"Saudi Arabia","SN":"Senegal","RS":"Serbia","SL":"Sierra Leone","SK":"Slovakia","SI":"Slovenia","SO":"Somalia","ZA":"South Africa","SS":"South Sudan","ES":"Spain","LK":"Sri Lanka","SD":"Sudan","SR":"Suriname","SZ":"Eswatini","SE":"Sweden","CH":"Switzerland","SY":"Syria","TW":"Taiwan","TJ":"Tajikistan","TZ":"Tanzania","TH":"Thailand","GM":"The Gambia","TL":"Timor-Leste","TG":"Togo","TN":"Tunisia","TM":"Turkmenistan","TV":"Tuvalu","UG":"Uganda","UA":"Ukraine","AE":"United Arab Emirates","UY":"Uruguay","UZ":"Uzbekistan","VE":"Venezuela","VN":"Vietnam","EH":"Western Sahara","YE":"Yemen","ZM":"Zambia","ZW":"Zimbabwe"
 };
 
-const continents = {
-"North America":["AI","AW","BB","BZ","BM","CA","CR","CU","DM","DO","GD","GL","GT","HN","HT","JM","KN","LC","MX","NI","PA","SV","TT","US","VC"],
-"South America":["AR","BO","BR","CL","CO","EC","GY","PE","PY","SR","UY","VE"],
-"Europe":["AL","AT","BA","BE","BG","BY","CH","CZ","DE","DK","EE","ES","FI","FR","GB","GR","HR","HU","IE","IS","IT","LT","LU","LV","MD","ME","MK","MT","NL","NO","PL","PT","RO","RS","RU","SE","SI","SK","UA","XK"],
-"Africa":["DZ","AO","BJ","BF","BI","BW","CD","CF","CG","CI","CM","CV","DJ","DZ","EG","EH","ER","ET","GA","GH","GM","GN","GQ","GW","KE","KM","LR","LS","LY","MA","MG","ML","MR","MU","MW","MZ","NA","NE","NG","RE","RW","SC","SD","SH","SL","SN","SO","SS","ST","SZ","TD","TG","TN","TZ","UG","ZA","ZM","ZW"],
-"Asia":["AF","AM","AZ","BD","BH","BN","BT","CN","CY","GE","HK","ID","IL","IN","IQ","IR","JO","JP","KG","KH","KP","KR","KW","KZ","LA","LB","LK","MM","MN","MO","MY","NP","OM","PH","PK","PS","QA","SA","SG","SY","TH","TJ","TM","TR","TW","UZ","VN","YE"],
-"Oceania":["AU","FJ","FM","GU","KI","MH","MP","NC","NR","NZ","PF","PG","PW","SB","TO","TV","VU","WS"]
-};
+let svgDoc = null;
+let svgRoot = null;
+let initialViewBox = null;
 
-let svgDoc=null,svgRoot=null,initialViewBox=null;
-let currentMode="World",modeCountries=[],remainingCountries=[],currentCountry=null,correctCount=0,modeTotal=0;
-
-function getModeCountries(mode){
-  if(mode==="World"){
-    const all=new Set();
-    Object.values(continents).forEach(a=>a.forEach(c=>all.add(c)));
-    return Array.from(all);
-  }
-  return continents[mode]?[...continents[mode]]:[];
+function parseViewBox(vb){
+  const p = vb.split(/\s+/).map(Number);
+  return {x:p[0], y:p[1], w:p[2], h:p[3]};
 }
 
-function resetMode(){
-  modeCountries=getModeCountries(currentMode);
-  remainingCountries=[...modeCountries];
-  correctCount=0;
-  modeTotal=modeCountries.length;
-  document.getElementById("score").textContent=correctCount;
-  document.getElementById("total").textContent=modeTotal;
-  document.getElementById("result").textContent="";
-  document.getElementById("target").textContent="---";
-  if(svgRoot&&initialViewBox){
-    svgRoot.setAttribute("viewBox",`${initialViewBox.x} ${initialViewBox.y} ${initialViewBox.w} ${initialViewBox.h}`);
-  }
-}
-
-function findCountryElement(code){
-  if(!svgDoc)return null;
-  const paths=svgDoc.querySelectorAll("path");
-  for(const p of paths){
-    const cls=(p.getAttribute("class")||"").trim();
-    const id=(p.getAttribute("id")||"").trim();
-    if(cls===code||id===code)return p;
-  }
-  return null;
-}
-
-function animateViewBox(from,to,duration=500){
-  const start=performance.now();
+function animateViewBox(from, to, duration = 500){
+  const start = performance.now();
   function step(now){
-    const t=Math.min(1,(now-start)/duration);
-    const x=from.x+(to.x-from.x)*t;
-    const y=from.y+(to.y-from.y)*t;
-    const w=from.w+(to.w-from.w)*t;
-    const h=from.h+(to.h-from.h)*t;
-    svgRoot.setAttribute("viewBox",`${x} ${y} ${w} ${h}`);
-    if(t<1)requestAnimationFrame(step);
+    const t = Math.min(1, (now - start) / duration);
+    const x = from.x + (to.x - from.x) * t;
+    const y = from.y + (to.y - from.y) * t;
+    const w = from.w + (to.w - from.w) * t;
+    const h = from.h + (to.h - from.h) * t;
+    svgRoot.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+    if(t < 1) requestAnimationFrame(step);
   }
   requestAnimationFrame(step);
 }
 
-function parseViewBox(vb){
-  const p=vb.split(/\s+/).map(Number);
-  return {x:p[0],y:p[1],w:p[2],h:p[3]};
+function zoomTo(code){
+  const el = svgDoc.querySelector(`[class="${code}"], [id="${code}"]`);
+  if(!el) return;
+
+  const b = el.getBBox();
+  const pad = 1.5;
+
+  const cx = b.x + b.width/2;
+  const cy = b.y + b.height/2;
+
+  const w = b.width * pad;
+  const h = b.height * pad;
+
+  const x = cx - w/2;
+  const y = cy - h/2;
+
+  const current = parseViewBox(svgRoot.getAttribute("viewBox"));
+  const target = {x, y, w, h};
+
+  animateViewBox(current, target, 500);
 }
 
-function zoomToCountry(code){
-  const el=findCountryElement(code);
-  if(!el)return;
-  const b=el.getBBox();
-  const pad=1.5;
-  const cx=b.x+b.width/2;
-  const cy=b.y+b.height/2;
-  const w=b.width*pad;
-  const h=b.height*pad;
-  const x=cx-w/2;
-  const y=cy-h/2;
-  const currentVB=parseViewBox(svgRoot.getAttribute("viewBox"));
-  const targetVB={x,y,w,h};
-  animateViewBox(currentVB,targetVB,500);
-}
+document.getElementById("svgMap").addEventListener("load", () => {
+  svgDoc = document.getElementById("svgMap").contentDocument;
+  svgRoot = svgDoc.documentElement;
 
-function pickNext(){
-  if(!remainingCountries.length){
-    document.getElementById("target").textContent="---";
-    document.getElementById("result").textContent=`Complete! ${correctCount}/${modeTotal}`;
-    return;
-  }
-  const idx=Math.floor(Math.random()*remainingCountries.length);
-  currentCountry=remainingCountries[idx];
-  const real=nameMap[currentCountry]||currentCountry;
-  document.getElementById("target").textContent=real;
-  zoomToCountry(currentCountry);
-}
+  initialViewBox = parseViewBox(svgRoot.getAttribute("viewBox"));
 
-function setupClicks(){
-  const paths=svgDoc.querySelectorAll("path");
-  paths.forEach(p=>{
-    p.style.cursor="pointer";
-    p.addEventListener("click",()=>{
-      if(!currentCountry)return;
-      const code=(p.getAttribute("class")||p.getAttribute("id")||"").trim();
-      const clicked=nameMap[code]||code;
-      const target=nameMap[currentCountry]||currentCountry;
-      if(clicked===target){
-        p.classList.add("highlight");
-        document.getElementById("result").textContent="Correct!";
-        document.getElementById("result").className="correct";
-        remainingCountries=remainingCountries.filter(c=>c!==currentCountry);
-        correctCount++;
-        document.getElementById("score").textContent=correctCount;
-        setTimeout(()=>{
-          p.classList.remove("highlight");
-          pickNext();
-        },700);
-      } else {
-        document.getElementById("result").textContent=`Wrong! That was ${clicked}`;
-        document.getElementById("result").className="wrong";
-      }
+  const paths = svgDoc.querySelectorAll("path");
+
+  paths.forEach(p => {
+    p.style.cursor = "pointer";
+
+    p.addEventListener("click", () => {
+      const code = (p.getAttribute("class") || p.getAttribute("id") || "").trim();
+      const name = nameMap[code] || code;
+
+      document.getElementById("countryName").textContent = name;
+
+      svgDoc.querySelectorAll("path").forEach(x => x.classList.remove("highlight"));
+      p.classList.add("highlight");
+
+      zoomTo(code);
     });
   });
-}
-
-document.getElementById("svgMap").addEventListener("load",()=>{
-  svgDoc=document.getElementById("svgMap").contentDocument;
-  svgRoot=svgDoc.documentElement;
-  initialViewBox=parseViewBox(svgRoot.getAttribute("viewBox"));
-  setupClicks();
-  resetMode();
-  pickNext();
 });
-
-document.getElementById("modeSelect").addEventListener("change",()=>{
-  currentMode=document.getElementById("modeSelect").value;
-  resetMode();
-  pickNext();
-});
-
-document.getElementById("nextBtn").addEventListener("click",pickNext);
 </script>
 
 </body>

@@ -168,14 +168,29 @@ document.getElementById("svgMap").addEventListener("load", () => {
 
   viewBoxOriginal = svg.getAttribute("viewBox").split(" ").map(Number);
 
+  // === FIXED CLICK + HOVER DETECTION ===
   for (const code in COUNTRY_NAMES) {
     const el = svg.getElementById(code);
     if (!el) continue;
 
-    el.style.transition = "0.2s";
+    // Make entire country clickable + hoverable
+    el.querySelectorAll("*").forEach(child => {
+      child.dataset.country = code;
+
+      child.addEventListener("mouseenter", () => el.classList.add("hover"));
+      child.addEventListener("mouseleave", () => el.classList.remove("hover"));
+
+      child.addEventListener("click", (e) => {
+        const clickedCode = e.target.dataset.country;
+        handleClick(clickedCode, el);
+      });
+    });
+
+    el.dataset.country = code;
 
     el.addEventListener("mouseenter", () => el.classList.add("hover"));
     el.addEventListener("mouseleave", () => el.classList.remove("hover"));
+
     el.addEventListener("click", () => handleClick(code, el));
   }
 

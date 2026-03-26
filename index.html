@@ -410,4 +410,89 @@ function handleCountryClick(id) {
   if (!path) return;
 
   if (id === currentTargetId) {
-    path
+        path.classList.add("country-correct");
+    remainingIds = remainingIds.filter(x => x !== id);
+    correctCount++;
+    updateScore();
+    updateRemainingList();
+    chooseNextTarget();
+  } else {
+    path.classList.add("country-wrong");
+    setTimeout(() => path.classList.remove("country-wrong"), 600);
+  }
+}
+
+function zoomToRegion(ids) {
+  if (!ids || ids.length === 0) {
+    svg.setAttribute("viewBox", "0 0 2000 1000");
+    return;
+  }
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  ids.forEach(id => {
+    const el = svg.querySelector(`path[data-cid="${id}"]`);
+    if (!el) return;
+    const b = el.getBBox();
+    minX = Math.min(minX, b.x);
+    minY = Math.min(minY, b.y);
+    maxX = Math.max(maxX, b.x + b.width);
+    maxY = Math.max(maxY, b.y + b.height);
+  });
+
+  if (!isFinite(minX)) {
+    svg.setAttribute("viewBox", "0 0 2000 1000");
+    return;
+  }
+
+  const padding = 40;
+  const x = minX - padding;
+  const y = minY - padding;
+  const w = (maxX - minX) + padding * 2;
+  const h = (maxY - minY) + padding * 2;
+
+  svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
+}
+
+function startGame() {
+  const regionKey = regionSelect.value;
+  modeLabel.textContent = regionKey;
+
+  activeRegionIds = pickRegionIds(regionKey).map(x => x.toUpperCase());
+  remainingIds = [...activeRegionIds];
+  correctCount = 0;
+  totalCount = activeRegionIds.length;
+  gameActive = true;
+
+  resetStyles();
+  updateScore();
+  updateRemainingList();
+  chooseNextTarget();
+  zoomToRegion(activeRegionIds);
+}
+
+startBtn.addEventListener("click", startGame);
+
+regionSelect.addEventListener("change", () => {
+  if (gameActive) {
+    startGame();
+  } else {
+    modeLabel.textContent = regionSelect.value;
+    activeRegionIds = pickRegionIds(regionSelect.value).map(x => x.toUpperCase());
+    resetStyles();
+    zoomToRegion(activeRegionIds);
+  }
+});
+
+window.addEventListener("load", async () => {
+  await loadWorldSVG();
+  initMap();
+  updateScore();
+  updateRemainingList();
+  zoomToRegion(REGIONS.World);
+});
+</script>
+
+</body>
+</html>
+

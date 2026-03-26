@@ -67,12 +67,12 @@
   svg {
     max-width: 100%;
     max-height: 100%;
-    background: #4aa3ff; /* BLUE OCEAN */
+    background: #4aa3ff;
     transition: viewBox 0.25s ease-out;
   }
 
   svg path {
-    fill: #4caf50; /* GREEN COUNTRIES */
+    fill: #4caf50;
     stroke: #2d6a2d;
     stroke-width: 0.5;
     cursor: pointer;
@@ -205,107 +205,97 @@ async function loadWorldSVG() {
     const response = await fetch("world.txt");
     const text = await response.text();
     document.getElementById("world-svg").innerHTML = text;
-    console.log("Loaded world.txt");
   } catch (err) {
     console.error("Failed to load world.txt", err);
   }
 }
 
 /* -----------------------------
-   COUNTRY LIST
+   COUNTRY LIST (YOUR NEW LIST)
 ------------------------------ */
 const COUNTRY_NAMES = {
-  "AD":"Andorra","AE":"United Arab Emirates","AF":"Afghanistan","AG":"Antigua and Barbuda",
-  "AI":"Anguilla","AL":"Albania","AM":"Armenia","AO":"Angola","AR":"Argentina",
-  "AS":"American Samoa","AT":"Austria","AU":"Australia","AW":"Aruba","AZ":"Azerbaijan",
-  "BA":"Bosnia and Herzegovina","BB":"Barbados","BD":"Bangladesh","BE":"Belgium",
-  "BF":"Burkina Faso","BG":"Bulgaria","BH":"Bahrain","BI":"Burundi","BJ":"Benin",
-  "BL":"Saint-Barthélemy","BM":"Bermuda","BN":"Brunei","BO":"Bolivia",
-  "BQBO":"Netherlands","BQSA":"Saba (Netherlands)","BQSE":"St. Eustatius (Netherlands)",
-  "BR":"Brazil","BS":"Bahamas","BT":"Bhutan","BW":"Botswana","BY":"Belarus","BZ":"Belize",
-  "CA":"Canada","CD":"Democratic Republic of the Congo","CF":"Central African Republic",
-  "CG":"Republic of Congo","CH":"Switzerland","CI":"Côte d'Ivoire","CL":"Chile",
-  "CM":"Cameroon","CN":"China","CO":"Colombia","CR":"Costa Rica","CU":"Cuba",
-  "CV":"Cape Verde","CW":"Curaco (Netherlands)","CY":"Cyprus","CZ":"Czech Republic",
-  "DE":"Germany","DJ":"Djibouti","DK":"Denmark","DM":"Dominica",
-  "DO":"Dominican Republic","DZ":"Algeria","EC":"Ecuador","EE":"Estonia","EG":"Egypt",
-  "EH":"Western Sahara","ER":"Eritrea","ES":"Spain","ET":"Ethiopia","FI":"Finland",
-  "FJ":"Fiji","FK":"Falkland Islands","FM":"Micronesia","FO":"Faeroe Islands",
-  "FR":"France","GA":"Gabon","GB":"United Kingdom","GD":"Grenada","GE":"Georgia",
-  "GF":"France","GH":"Ghana","GL":"Greenland","GM":"The Gambia","GN":"Guinea",
-  "GP":"Guadeloupe (France)","GQ":"Equatorial Guinea","GR":"Greece",
-  "GS":"South Georgia and South Sandwich Islands","GT":"Guatemala","GU":"Guam",
-  "GW":"Guinea-Bissau","GY":"Guyana","HK":"Hong Kong","HN":"Honduras","HR":"Croatia",
-  "HT":"Haiti","HU":"Hungary","IC":"Canary Islands (Spain)","ID":"Indonesia",
-  "IE":"Ireland","IL":"Israel","IN":"India","IQ":"Iraq","IR":"Iran","IS":"Iceland",
-  "IT":"Italy","JM":"Jamaica","JO":"Jordan","JP":"Japan","KE":"Kenya","KG":"Kyrgyzstan",
-  "KH":"Cambodia","KI":"Kiribati","KM":"Comoros","KN":"Saint Kitts and Nevis",
-  "KP":"North Korea","KR":"South Korea","KW":"Kuwait","KY":"Cayman Islands",
-  "KZ":"Kazakhstan","LA":"Laos","LB":"Lebanon","LC":"Saint Lucia",
-  "LI":"Liechtenstein","LK":"Sri Lanka","LR":"Liberia","LS":"Lesotho","LT":"Lithuania",
-  "LU":"Luxembourg","LV":"Latvia","LY":"Libya","MA":"Morocco","MC":"Monaco",
-  "MD":"Moldova","ME":"Montenegro","MF":"Saint Martin (French)","MG":"Madagascar",
-  "MH":"Marshall Islands","MK":"Macedonia","ML":"Mali","MM":"Myanmar","MN":"Mongolia",
-  "MP":"Northern Mariana Islands","MQ":"Martinique (France)","MR":"Mauritania",
-  "MS":"Montserrat","MT":"Malta","MU":"Mauritius","MV":"Maldives","MW":"Malawi",
-  "MX":"Mexico","MY":"Malaysia","MZ":"Mozambique","NA":"Namibia","NC":"New Caledonia",
-  "NE":"Niger","NG":"Nigeria","NI":"Nicaragua","NL":"Netherlands","NO":"Norway",
-  "NP":"Nepal","NR":"Nauru","NZ":"New Zealand","OM":"Oman","PA":"Panama","PE":"Peru",
-  "PF":"French Polynesia","PG":"Papua New Guinea","PH":"Philippines","PK":"Pakistan",
-  "PL":"Poland","PR":"Puerto Rico","PS":"Palestine","PT":"Portugal","PW":"Palau",
-  "PY":"Paraguay","QA":"Qatar","RE":"Reunion (France)","RO":"Romania","RS":"Serbia",
-  "RU":"Russian Federation","RW":"Rwanda","SA":"Saudi Arabia","SB":"Solomon Islands",
-  "SC":"Seychelles","SD":"Sudan","SE":"Sweden","SG":"Singapore","SI":"Slovenia",
-  "SK":"Slovakia","SL":"Sierra Leone","SN":"Senegal","SO":"Somalia","SR":"Suriname",
-  "SS":"South Sudan","ST":"São Tomé and Principe","SV":"El Salvador",
-  "SX":"Saint Martin (Dutch)","SY":"Syria","SZ":"Swaziland",
-  "TC":"Turks and Caicos Islands","TD":"Chad","TG":"Togo","TH":"Thailand",
-  "TJ":"Tajikistan","TL":"Timor-Leste","TM":"Turkmenistan","TN":"Tunisia","TO":"Tonga",
-  "TR":"Turkey","TT":"Trinidad and Tobago","TV":"Tuvalu","TW":"Taiwan",
-  "TZ":"Tanzania","UA":"Ukraine","UG":"Uganda","US":"United States","UY":"Uruguay",
-  "UZ":"Uzbekistan","VC":"Saint Vincent and the Grenadines","VE":"Venezuela",
-  "VG":"British Virgin Islands","VI":"United States Virgin Islands","VN":"Vietnam",
-  "VU":"Vanuatu","WS":"Samoa","XK":"Kosovo","YE":"Yemen","YT":"Mayotte (France)",
-  "ZA":"South Africa","ZM":"Zambia","ZW":"Zimbabwe"
+  "af":"Afghanistan","al":"Albania","dz":"Algeria","ao":"Angola","ar":"Argentina",
+  "am":"Armenia","au":"Australia","at":"Austria","az":"Azerbaijan","bs":"Bahamas",
+  "bd":"Bangladesh","by":"Belarus","be":"Belgium","bz":"Belize","bj":"Benin",
+  "bt":"Bhutan","bo":"Bolivia","ba":"Bosnia and Herzegowina","bw":"Botswana",
+  "br":"Brazil","bn":"Brunei","bg":"Bulgaria","bf":"Burkina Faso","bi":"Burundi",
+  "kh":"Cambodia","cm":"Cameroon","ca":"Canada","cf":"Central African Republic",
+  "td":"Chad","cl":"Chile","cn":"China","co":"Colombia","cg":"Congo",
+  "cr":"Costa Rica","ci":"Cote d'Ivoire","hr":"Croatia","cu":"Cuba","cy":"Cyprus",
+  "cz":"Czech","cd":"Democratic Republic of the Congo","dk":"Denmark","dj":"Djibouti",
+  "do":"Dominican Republic","ec":"Ecuador","eg":"Egypt","sv":"El Salvador",
+  "gq":"Equatorial Guinea","er":"Eritrea","ee":"Estonia","et":"Ethiopia",
+  "fk":"Falkland Islands","fj":"Fiji","fi":"Finland","tf":"Fr. S. Antarctic Lands",
+  "fr":"France","ga":"Gabon","gm":"Gambia","ge":"Georgia","de":"Germany",
+  "gh":"Ghana","gr":"Greece","gl":"Greenland","gt":"Guatemala","gn":"Guinea",
+  "gw":"Guinea-Bissau","gy":"Guyana","ht":"Haiti","hn":"Honduras","hu":"Hungary",
+  "is":"Iceland","in":"India","id":"Indonesia","ir":"Iran","iq":"Iraq","ie":"Ireland",
+  "il":"Israel","it":"Italy","jm":"Jamaica","jp":"Japan","jo":"Jordan",
+  "kz":"Kazakhstan","ke":"Kenya","kw":"Kuwait","kg":"Kyrgyzstan","la":"Laos",
+  "lv":"Latvia","lb":"Lebanon","ls":"Lesotho","lr":"Liberia","ly":"Libya",
+  "lt":"Lithuania","lu":"Luxembourg","mk":"Macedonia","mg":"Madagascar",
+  "mw":"Malawi","my":"Malaysia","ml":"Mali","mt":"Malta","mr":"Mauritania",
+  "mx":"Mexico","md":"Moldova","mn":"Mongolia","me":"Montenegro","ma":"Morocco",
+  "mz":"Mozambique","mm":"Myanmar","na":"Namibia","np":"Nepal","nl":"Netherlands",
+  "nc":"New Caledonia","nz":"New Zealand","ni":"Nicaragua","ne":"Niger",
+  "ng":"Nigeria","kp":"North Korea","no":"Norway","om":"Oman","pk":"Pakistan",
+  "ps":"Palestine","pa":"Panama","pg":"Papua New Guinea","py":"Paraguay",
+  "pe":"Peru","ph":"Philippines","pl":"Poland","pt":"Portugal","pr":"Puerto Rico",
+  "qa":"Qatar","ro":"Romania","ru":"Russia","rw":"Rwanda","sa":"Saudi Arabia",
+  "sn":"Senegal","rs":"Serbia","sl":"Sierra Leone","sg":"Singapore","sk":"Slovakia",
+  "si":"Slovenia","sb":"Solomon Islands","so":"Somalia","_somaliland":"Somaliland",
+  "za":"South Africa","kr":"South Korea","ss":"South Sudan","es":"Spain",
+  "lk":"Sri Lanka","sd":"Sudan","sr":"Suriname","sz":"Swaziland","se":"Sweden",
+  "ch":"Switzerland","sy":"Syria","tw":"Taiwan","tj":"Tajikistan","tz":"Tanzania",
+  "th":"Thailand","tl":"Timor-Leste","tg":"Togo","tt":"Trinidad and Tobago",
+  "tn":"Tunisia","tr":"Turkey","tm":"Turkmenistan","ug":"Uganda","ua":"Ukraine",
+  "ae":"United Arab Emirates","gb":"United Kingdom","us":"United States",
+  "uy":"Uruguay","uz":"Uzbekistan","vu":"Vanuatu","ve":"Venezuela","vn":"Vietnam",
+  "eh":"West Sahara","ye":"Yemen","zm":"Zambia","zw":"Zimbabwe"
 };
 
 /* -----------------------------
-   REGIONS
+   REGIONS (rebuilt for new list)
 ------------------------------ */
 const REGIONS = {
   World: null,
+
   Africa: [
-    "DZ","EG","EH","LY","TN","MA","MR","ML","NE","TD","SD","SS","ER","ET","SO","DJ",
-    "KE","UG","TZ","RW","BI","AO","ZM","MW","MZ","ZW","NA","BW","ZA","LS","SZ",
-    "GA","GQ","CG","CD","CM","NG","BJ","TG","GH","CI","BF","GM","SN","GN","GW",
-    "SL","LR","ST","CV","SC","MU","MG","YT","RE","CF"
+    "dz","ao","cf","td","cg","ci","cm","cd","dj","eg","eh","er","et","ga","gm","gh",
+    "gn","gq","gw","ke","lr","ls","ly","mg","ml","mr","mw","mz","na","ne","ng","rw",
+    "sd","sl","sn","so","_somaliland","ss","st","sz","tg","tn","tz","ug","za","zm","zw"
   ],
+
   Europe: [
-    "AD","AL","AT","BA","BE","BG","BY","CH","CY","CZ","DE","DK","EE","ES","FI","FR",
-    "GB","GR","HR","HU","IE","IS","IT","LI","LT","LU","LV","MC","MD","ME","MK","MT",
-    "NL","NO","PL","PT","RO","RS","RU","SE","SI","SK","UA","XK","IC","FO","GL"
+    "al","at","ba","be","bg","by","ch","cy","cz","de","dk","ee","es","fi","fr","gb",
+    "gr","hr","hu","ie","is","it","lv","lt","lu","md","me","mk","mt","nl","no","pl",
+    "pt","ro","rs","se","si","sk","ua"
   ],
+
   Asia: [
-    "AF","AM","AZ","BH","BD","BN","BT","CN","CY","GE","HK","ID","IL","IQ","IR","JO",
-    "JP","KG","KH","KP","KR","KW","KZ","LA","LB","LK","MM","MN","MY","NP","OM","PH",
-    "PK","PS","QA","RU","SA","SG","SY","TH","TJ","TL","TM","TR","TW","UZ","VN","YE",
-    "AE","IN"
+    "af","am","az","bd","bh","bn","bt","cn","ge","id","il","in","iq","ir","jo","jp",
+    "kg","kh","kp","kr","kw","kz","la","lb","lk","mm","mn","my","np","om","ph","pk",
+    "ps","qa","ru","sa","sg","sy","th","tj","tl","tm","tr","tw","uz","vn","ye","ae"
   ],
+
   NorthAmerica: [
-    "CA","US","MX","GL","BZ","GT","SV","HN","NI","CR","PA",
-    "CU","DO","HT","JM","BS","PR","VG","VI","TC","KY","AG","AI","BB","BL","DM","GD",
-    "KN","LC","MF","MQ","MS","SX","VC","GP","BQBO","BQSA","BQSE"
+    "ca","us","mx","bz","cr","sv","gt","hn","ni","pa","pr","gl"
   ],
-  CentralAmerica: ["BZ","CR","SV","GT","HN","NI","PA"],
+
+  CentralAmerica: [
+    "bz","cr","sv","gt","hn","ni","pa"
+  ],
+
   SouthAmerica: [
-    "AR","BO","BR","CL","CO","EC","GY","GF","SR","PE","PY","UY","VE","FK"
+    "ar","bo","br","cl","co","ec","gy","pe","py","sr","uy","ve","fk"
   ],
+
   Oceania: [
-    "AU","NZ","FJ","FM","KI","MH","NR","PW","SB","TO","TV","VU","WS","PG","NC","PF",
-    "GU","MP","AS"
+    "au","fj","nc","nz","pg","sb","vu"
   ],
+
   MiddleEast: [
-    "AE","BH","CY","EG","IL","IQ","IR","JO","KW","LB","OM","PS","QA","SA","SY","TR","YE"
+    "ae","bh","cy","eg","il","iq","ir","jo","kw","lb","om","ps","qa","sa","sy","tr","ye"
   ]
 };
 
@@ -333,7 +323,7 @@ function initMap() {
   allClickableIds = [];
 
   paths.forEach(p => {
-    const id = p.id.trim().toUpperCase();
+    const id = p.id.trim().toLowerCase();
     p.dataset.cid = id;
 
     if (COUNTRY_NAMES[id]) {
@@ -350,7 +340,7 @@ function initMap() {
 function pickRegionIds(regionKey) {
   const base = REGIONS[regionKey];
   if (!base) return [...REGIONS.World];
-  const set = new Set(base.map(x => x.toUpperCase()));
+  const set = new Set(base.map(x => x.toLowerCase()));
   return REGIONS.World.filter(id => set.has(id));
 }
 
@@ -410,7 +400,7 @@ function handleCountryClick(id) {
   if (!path) return;
 
   if (id === currentTargetId) {
-        path.classList.add("country-correct");
+    path.classList.add("country-correct");
     remainingIds = remainingIds.filter(x => x !== id);
     correctCount++;
     updateScore();
@@ -458,7 +448,7 @@ function startGame() {
   const regionKey = regionSelect.value;
   modeLabel.textContent = regionKey;
 
-  activeRegionIds = pickRegionIds(regionKey).map(x => x.toUpperCase());
+  activeRegionIds = pickRegionIds(regionKey).map(x => x.toLowerCase());
   remainingIds = [...activeRegionIds];
   correctCount = 0;
   totalCount = activeRegionIds.length;
@@ -476,23 +466,3 @@ startBtn.addEventListener("click", startGame);
 regionSelect.addEventListener("change", () => {
   if (gameActive) {
     startGame();
-  } else {
-    modeLabel.textContent = regionSelect.value;
-    activeRegionIds = pickRegionIds(regionSelect.value).map(x => x.toUpperCase());
-    resetStyles();
-    zoomToRegion(activeRegionIds);
-  }
-});
-
-window.addEventListener("load", async () => {
-  await loadWorldSVG();
-  initMap();
-  updateScore();
-  updateRemainingList();
-  zoomToRegion(REGIONS.World);
-});
-</script>
-
-</body>
-</html>
-

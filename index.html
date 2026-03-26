@@ -182,7 +182,12 @@
 
 <main>
   <div id="map-container">
-    <svg id="world-svg" viewBox="0 0 2000 1000"></svg>
+
+    <!-- ⭐⭐⭐ PASTE YOUR ENTIRE SVG CONTENT HERE ⭐⭐⭐ -->
+    <svg id="world-svg" viewBox="0 0 2000 1000">
+      <!-- paste everything from <path id="ae"...> to <path id="zw"...> here -->
+    </svg>
+
   </div>
 
   <aside id="sidebar">
@@ -198,20 +203,7 @@
 
 <script>
 /* -----------------------------
-   LOAD world.txt
------------------------------- */
-async function loadWorldSVG() {
-  try {
-    const response = await fetch("world.txt");
-    const text = await response.text();
-    document.getElementById("world-svg").innerHTML = text;
-  } catch (err) {
-    console.error("Failed to load world.txt", err);
-  }
-}
-
-/* -----------------------------
-   COUNTRY LIST (YOUR NEW LIST)
+   COUNTRY LIST (your new list)
 ------------------------------ */
 const COUNTRY_NAMES = {
   "af":"Afghanistan","al":"Albania","dz":"Algeria","ao":"Angola","ar":"Argentina",
@@ -255,7 +247,7 @@ const COUNTRY_NAMES = {
 };
 
 /* -----------------------------
-   REGIONS (rebuilt for new list)
+   REGIONS (rebuilt)
 ------------------------------ */
 const REGIONS = {
   World: null,
@@ -263,7 +255,7 @@ const REGIONS = {
   Africa: [
     "dz","ao","cf","td","cg","ci","cm","cd","dj","eg","eh","er","et","ga","gm","gh",
     "gn","gq","gw","ke","lr","ls","ly","mg","ml","mr","mw","mz","na","ne","ng","rw",
-    "sd","sl","sn","so","_somaliland","ss","st","sz","tg","tn","tz","ug","za","zm","zw"
+    "sd","sl","sn","so","_somaliland","ss","sz","tg","tn","tz","ug","za","zm","zw"
   ],
 
   Europe: [
@@ -319,7 +311,7 @@ let totalCount = 0;
 let gameActive = false;
 
 function initMap() {
-  const paths = svg.querySelectorAll("path[id]");
+  const paths = svg.querySelectorAll("path[id], g[id]");
   allClickableIds = [];
 
   paths.forEach(p => {
@@ -345,7 +337,7 @@ function pickRegionIds(regionKey) {
 }
 
 function resetStyles() {
-  const paths = svg.querySelectorAll("path[id]");
+  const paths = svg.querySelectorAll("[id]");
   paths.forEach(p => {
     const id = p.dataset.cid;
 
@@ -396,7 +388,7 @@ function handleCountryClick(id) {
   if (!gameActive || !currentTargetId) return;
   if (!activeRegionIds.includes(id)) return;
 
-  const path = svg.querySelector(`path[data-cid="${id}"]`);
+  const path = svg.querySelector(`[data-cid="${id}"]`);
   if (!path) return;
 
   if (id === currentTargetId) {
@@ -421,7 +413,7 @@ function zoomToRegion(ids) {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
   ids.forEach(id => {
-    const el = svg.querySelector(`path[data-cid="${id}"]`);
+    const el = svg.querySelector(`[data-cid="${id}"]`);
     if (!el) return;
     const b = el.getBBox();
     minX = Math.min(minX, b.x);
@@ -466,3 +458,12 @@ startBtn.addEventListener("click", startGame);
 regionSelect.addEventListener("change", () => {
   if (gameActive) {
     startGame();
+  } else {
+    modeLabel.textContent = regionSelect.value;
+    activeRegionIds = pickRegionIds(regionSelect.value).map(x => x.toLowerCase());
+    resetStyles();
+    zoomToRegion(activeRegionIds);
+  }
+});
+
+window.addEventListener("

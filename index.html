@@ -204,7 +204,7 @@
 
 <script>
 /* -----------------------------
-   COUNTRY LIST (your new list)
+   COUNTRY LIST
 ------------------------------ */
 const COUNTRY_NAMES = {
   "af":"Afghanistan","al":"Albania","dz":"Algeria","ao":"Angola","ar":"Argentina",
@@ -248,7 +248,7 @@ const COUNTRY_NAMES = {
 };
 
 /* -----------------------------
-   REGIONS (rebuilt)
+   REGIONS
 ------------------------------ */
 const REGIONS = {
   World: null,
@@ -467,4 +467,12 @@ regionSelect.addEventListener("change", () => {
   }
 });
 
-window.addEventListener("
+window.addEventListener("load", () => {
+  initMap();
+  updateScore();
+  updateRemainingList();
+  zoomToRegion(REGIONS.World);
+});
+</script>
+
+</body

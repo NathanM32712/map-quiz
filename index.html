@@ -146,6 +146,47 @@
       margin-left: 0.25rem;
       opacity: 0.8;
     }
+
+      svg {
+  max-width: 100%;
+  max-height: 100%;
+  background: #4aa3ff; /* BLUE OCEAN */
+  transition: viewBox 0.25s ease-out;
+}
+
+svg path {
+  fill: #4caf50; /* GREEN COUNTRIES */
+  stroke: #2d6a2d;
+  stroke-width: 0.5;
+  cursor: pointer;
+  transition: fill 0.15s, stroke 0.15s, opacity 0.15s;
+}
+
+/* Countries NOT in the region = fully gone */
+svg path.country-disabled {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Hover effect for active countries */
+svg path.country-pending:hover {
+  fill: #5ecf63;
+}
+
+/* Correct guess */
+svg path.country-correct {
+  fill: #2d6a4f !important;
+  stroke: #95d5b2 !important;
+  opacity: 1 !important;
+}
+
+/* Wrong guess */
+svg path.country-wrong {
+  fill: #b30000 !important;
+  stroke: #ffcc00 !important;
+  opacity: 1 !important;
+}
+
   </style>
 </head>
 <body>

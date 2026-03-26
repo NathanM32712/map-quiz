@@ -1309,20 +1309,26 @@ svg path.country-wrong {
       return REGIONS.World.filter(id => set.has(id));
     }
 
-    function resetStyles() {
-      const paths = svg.querySelectorAll("path[id]");
-      paths.forEach(p => {
-        p.classList.remove("country-correct","country-wrong","country-disabled","country-pending");
-        const id = p.id.trim();
-        if (COUNTRY_NAMES[id] && activeRegionIds.includes(id)) {
-          p.classList.add("country-pending");
-          p.style.opacity = "1";
-          p.style.pointerEvents = "auto";
-        } else {
-          p.classList.add("country-disabled");
-        }
-      });
+function resetStyles() {
+  const paths = svg.querySelectorAll("path[id]");
+  paths.forEach(p => {
+    p.classList.remove("country-correct","country-wrong","country-disabled","country-pending");
+
+    const id = p.id.trim();
+
+    if (COUNTRY_NAMES[id] && activeRegionIds.includes(id)) {
+      // ACTIVE COUNTRY
+      p.style.display = "inline";
+      p.style.opacity = "1";
+      p.style.pointerEvents = "auto";
+      p.classList.add("country-pending");
+    } else {
+      // NOT IN REGION → COMPLETELY GONE
+      p.style.display = "none";
     }
+  });
+}
+
 
     function updateScore() {
       scoreSpan.textContent = `Score: ${correctCount} / ${totalCount}`;

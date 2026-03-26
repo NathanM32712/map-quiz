@@ -79,7 +79,6 @@
     transition: fill 0.15s, stroke 0.15s, opacity 0.15s;
   }
 
-  /* Non‑region countries = fully gone */
   svg path.country-disabled {
     display: none !important;
     opacity: 0 !important;
@@ -183,9 +182,7 @@
 
 <main>
   <div id="map-container">
-    <svg id="world-svg" viewBox="0 0 2000 1000">
-      <!-- ⭐ PASTE YOUR WORLD SVG PATHS HERE -->
-    </svg>
+    <svg id="world-svg" viewBox="0 0 2000 1000"></svg>
   </div>
 
   <aside id="sidebar">
@@ -201,7 +198,21 @@
 
 <script>
 /* -----------------------------
-   COUNTRY LIST (YOUR FULL LIST)
+   LOAD world.txt
+------------------------------ */
+async function loadWorldSVG() {
+  try {
+    const response = await fetch("world.txt");
+    const text = await response.text();
+    document.getElementById("world-svg").innerHTML = text;
+    console.log("Loaded world.txt");
+  } catch (err) {
+    console.error("Failed to load world.txt", err);
+  }
+}
+
+/* -----------------------------
+   COUNTRY LIST
 ------------------------------ */
 const COUNTRY_NAMES = {
   "AD":"Andorra","AE":"United Arab Emirates","AF":"Afghanistan","AG":"Antigua and Barbuda",
@@ -399,12 +410,4 @@ function handleCountryClick(id) {
   if (!path) return;
 
   if (id === currentTargetId) {
-    path.classList.add("country-correct");
-    remainingIds = remainingIds.filter(x => x !== id);
-    correctCount++;
-    updateScore();
-    updateRemainingList();
-    chooseNextTarget();
-  } else {
-    path.classList.add("country-wrong");
-    setTimeout(() => path.classList.remove
+    path

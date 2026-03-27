@@ -168,6 +168,32 @@
     box-sizing: border-box;
     margin-bottom: 0.25rem;
   }
+
+  /* END SCREEN OVERLAY */
+  #end-screen {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 9999;
+  }
+
+  #end-text {
+    font-size: 3.2rem;
+    font-weight: 900;
+    color: #ffd166;
+    white-space: pre-line;
+  }
+
+  #end-text small {
+    display: block;
+    font-size: 1.2rem;
+    color: #eee;
+    margin-top: 0.5rem;
+  }
 </style>
 </head>
 
@@ -218,6 +244,11 @@
     </div>
   </aside>
 </main>
+
+<!-- END SCREEN -->
+<div id="end-screen">
+  <div id="end-text"></div>
+</div>
 
 <script>
 const COUNTRY_NAMES = {
@@ -314,6 +345,8 @@ const remainingUl = document.getElementById("remaining-ul");
 const adminPanel = document.getElementById("admin-panel");
 const adminScoreInput = document.getElementById("admin-score");
 const adminApplyBtn = document.getElementById("admin-apply");
+const endScreen = document.getElementById("end-screen");
+const endText = document.getElementById("end-text");
 
 let allClickableIds = [];
 let activeRegionIds = [];
@@ -390,11 +423,19 @@ function updateRemainingList() {
   });
 }
 
+function showEndScreen() {
+  const percent = questionsAnswered === 0 ? 0 : (correctScore / questionsAnswered) * 100;
+  const text = `FINAL SCORE\n${percent.toFixed(2)}%\n(${correctScore.toFixed(2)} / ${questionsAnswered})`;
+  endText.textContent = text;
+  endScreen.style.display = "flex";
+}
+
 function chooseNextTarget() {
   if (remainingIds.length === 0) {
     currentTargetId = null;
     targetSpan.textContent = "Done!";
     gameActive = false;
+    showEndScreen();
     return;
   }
   const idx = Math.floor(Math.random() * remainingIds.length);
@@ -507,6 +548,8 @@ function zoomToRegion(ids) {
 }
 
 function startGame() {
+  endScreen.style.display = "none";
+
   const regionKey = regionSelect.value;
   modeLabel.textContent = regionKey;
 

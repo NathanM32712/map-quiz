@@ -5,6 +5,21 @@
 <title>World Map Quiz</title>
 
 <style>
+  
+  #wrong-label {
+  position: fixed;
+  background: rgba(0,0,0,0.85);
+  color: #ffd166;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  pointer-events: none;
+  z-index: 99999;
+  display: none;
+  transform: translate(-50%, -120%);
+  white-space: nowrap;
+}
+  
   body {
     margin: 0;
     font-family: system-ui, sans-serif;
@@ -348,6 +363,7 @@ const adminScoreInput = document.getElementById("admin-score");
 const adminApplyBtn = document.getElementById("admin-apply");
 const endScreen = document.getElementById("end-screen");
 const endText = document.getElementById("end-text");
+const wrongLabel = document.getElementById("wrong-label"); // make sure this div exists
 
 let allClickableIds = [];
 let activeRegionIds = [];
@@ -368,7 +384,7 @@ function initMap() {
 
     if (COUNTRY_NAMES[id]) {
       allClickableIds.push(id);
-      el.addEventListener("click", () => handleCountryClick(id));
+      el.addEventListener("click", (ev) => handleCountryClick(id, ev));
     } else {
       el.style.display = "none";
     }
@@ -382,21 +398,6 @@ function pickRegionIds(regionKey) {
   if (!base) return [...REGIONS.World];
   const set = new Set(base.map(x => x.toLowerCase()));
   return REGIONS.World.filter(id => set.has(id));
-}
-
-  function skipCurrent() {
-  if (!gameActive || !currentTargetId) return;
-
-  // Remove from front
-  const id = currentTargetId;
-  remainingIds = remainingIds.filter(x => x !== id);
-
-  // Insert at random position
-  const pos = Math.floor(Math.random() * (remainingIds.length + 1));
-  remainingIds.splice(pos, 0, id);
-
-  chooseNextTarget();
-  updateRemainingList();
 }
 
 function resetStyles() {
@@ -471,7 +472,20 @@ function colorCountry(id, color) {
   }
 }
 
-function handleCountryClick(id) {
+function showWrongLabel(name, x, y) {
+  if (!wrongLabel) return;
+  wrongLabel.textContent = name;
+  wrongLabel.style.left = x + "px";
+  wrongLabel.style.top = y + "px";
+  wrongLabel.style.display = "block";
+
+  clearTimeout(wrongLabel.hideTimer);
+  wrongLabel.hideTimer = setTimeout(() => {
+    wrongLabel.style.display = "none";
+  }, 1200);
+}
+
+function handleCountryClick(id, ev) {
   if (!gameActive || !currentTargetId) return;
   if (!activeRegionIds.includes(id)) return;
 
@@ -508,10 +522,16 @@ function handleCountryClick(id) {
     return;
   }
 
+  // WRONG CLICK
   wrongAttempts++;
 
   el.classList.add("country-wrong");
   setTimeout(() => el.classList.remove("country-wrong"), 500);
+
+  // Show the name of the wrong country at mouse position
+  if (ev && ev.clientX != null && ev.clientY != null) {
+    showWrongLabel(COUNTRY_NAMES[id] || id, ev.clientX, ev.clientY);
+  }
 
   if (wrongAttempts >= 3) {
     colorCountry(currentTargetId, "#ff0000");
@@ -565,6 +585,7 @@ function zoomToRegion(ids) {
 
 function startGame() {
   endScreen.style.display = "none";
+  if (wrongLabel) wrongLabel.style.display = "none";
 
   const regionKey = regionSelect.value;
   modeLabel.textContent = regionKey;
@@ -592,7 +613,7 @@ function checkAdmin() {
 startBtn.addEventListener("click", startGame);
 
 regionSelect.addEventListener("change", () => {
-  startGame(); // auto-start on mode change
+  startGame();
 });
 
 adminApplyBtn.addEventListener("click", () => {
@@ -602,6 +623,19 @@ adminApplyBtn.addEventListener("click", () => {
     updateScore();
   }
 });
+
+// Optional: wire skip if the button exists
+const skipBtn = document.getElementById("skip-btn");
+if (skipBtn) {
+  skipBtn.addEventListener("click", () => {
+    if (!gameActive || !currentTargetId) return;
+    const id = currentTargetId;
+    remainingIds = remainingIds.filter(x => x !== id);
+    remainingIds.push(id); // send to end
+    chooseNextTarget();
+    updateRemainingList();
+  });
+}
 
 window.addEventListener("load", () => {
   initMap();

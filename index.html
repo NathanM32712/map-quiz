@@ -218,10 +218,7 @@
   <div id="big-target">Find: <span id="target">—</span></div>
 
   <button id="start-btn">Start / Reset</button>
-
-  <button onclick="window.location.href='https://nathanm32712.github.io/Launch-deck/launch-deck.html'">
-    Launch Deck
-  </button>
+  <button id="skip-btn">Skip</button>
 </header>
 
 <main>
@@ -385,6 +382,21 @@ function pickRegionIds(regionKey) {
   if (!base) return [...REGIONS.World];
   const set = new Set(base.map(x => x.toLowerCase()));
   return REGIONS.World.filter(id => set.has(id));
+}
+
+  function skipCurrent() {
+  if (!gameActive || !currentTargetId) return;
+
+  // Remove from front
+  const id = currentTargetId;
+  remainingIds = remainingIds.filter(x => x !== id);
+
+  // Insert at random position
+  const pos = Math.floor(Math.random() * (remainingIds.length + 1));
+  remainingIds.splice(pos, 0, id);
+
+  chooseNextTarget();
+  updateRemainingList();
 }
 
 function resetStyles() {

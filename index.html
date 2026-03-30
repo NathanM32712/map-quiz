@@ -200,6 +200,100 @@
   }
 </style>
 </head>
+  <body>
+
+<!-- Launch Deck icon -->
+<a class="launch-icon" href="../Launch-Deck"></a>
+
+<!-- Admin arrow -->
+<div id="admin-arrow">➤</div>
+
+<!-- Click label -->
+<div id="click-label"></div>
+
+<!-- End screen -->
+<div id="end-screen">
+  <div id="end-box">
+    <div id="end-text"></div>
+    <button id="save-score-btn">Save Score</button>
+    <button id="close-end-btn">Close</button>
+  </div>
+</div>
+
+<!-- Main layout -->
+<div class="app-container">
+
+  <!-- Left panel (you can remove this if you don't want it) -->
+  <div class="left-panel">
+    <h2>Quizzes</h2>
+    <button class="mode-btn" data-mode="Africa">Africa</button>
+    <button class="mode-btn" data-mode="Asia">Asia</button>
+    <button class="mode-btn" data-mode="Europe">Europe</button>
+    <button class="mode-btn" data-mode="MiddleEast">Middle East</button>
+    <button class="mode-btn" data-mode="NorthAmerica">North America</button>
+    <button class="mode-btn" data-mode="Oceania">Oceania</button>
+    <button class="mode-btn" data-mode="SouthAmerica">South America</button>
+    <button class="mode-btn" data-mode="USStates">US States</button>
+    <button class="mode-btn" data-mode="USCapitals">US Capitals</button>
+    <button class="mode-btn" data-mode="World">World Map</button>
+  </div>
+
+  <!-- Center panel -->
+  <div class="center-panel">
+
+    <div id="target-display">
+      Find: <span id="target">—</span>
+    </div>
+
+    <!-- WORLD MAP -->
+    <div id="world-container" class="map-container">
+      <!-- ⭐ PASTE WORLD SVG HERE -->
+    </div>
+
+    <!-- USA MAP -->
+    <div id="usa-container" class="map-container" style="display:none;">
+      <!-- ⭐ PASTE USA SVG HERE -->
+    </div>
+
+  </div>
+
+  <!-- Right panel -->
+  <div class="right-panel">
+
+    <div class="controls">
+      <button id="start-btn">Start</button>
+      <button id="skip-btn">Skip</button>
+
+      <!-- ⭐ MODE DROPDOWN -->
+      <select id="mode-select">
+        <option value="Practice">Practice Mode</option>
+        <option value="Speedrun">Speedrun Mode</option>
+        <option value="Hard">Hard Mode</option>
+        <option value="Africa">Africa</option>
+        <option value="Asia">Asia</option>
+        <option value="Europe">Europe</option>
+        <option value="MiddleEast">Middle East</option>
+        <option value="NorthAmerica">North America</option>
+        <option value="Oceania">Oceania</option>
+        <option value="SouthAmerica">South America</option>
+        <option value="USStates">US States</option>
+        <option value="USCapitals">US Capitals</option>
+        <option value="World">World Map</option>
+      </select>
+
+      <div id="mode-label">Mode: <span>---</span></div>
+      <div id="score">Score: 0%</div>
+    </div>
+
+    <div id="remaining-container">
+      <h3>Remaining</h3>
+      <ul id="remaining-ul"></ul>
+    </div>
+
+  </div>
+
+</div>
+
 <script>
 /* ===========================
    DATA

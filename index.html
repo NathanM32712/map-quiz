@@ -233,6 +233,18 @@
 </style>
 </head>
 <body>
+  
+<div id="admin-arrow" style="
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  pointer-events: none;
+  z-index: 99999;
+  display: none;
+  transform: translate(-50%, -50%);
+">
+  ➤
+</div>
 
 <a class="launch-icon" href="https://nathanm32712.github.io/Launch-deck/launch-deck.html"></a>
 
@@ -1006,6 +1018,75 @@ function zoomToIds(svg, ids) {
   svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
 }
 
+/* ============================
+   ADMIN ARROW FOLLOW SYSTEM
+   ============================ */
+
+function isAdmin() {
+  return document.cookie.includes("admin=true");
+}
+
+const adminArrow = document.getElementById("admin-arrow");
+let mouseX = 0;
+let mouseY = 0;
+
+document.addEventListener("mousemove", e => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+});
+
+function updateAdminArrow() {
+  if (!isAdmin()) {
+    adminArrow.style.display = "none";
+    requestAnimationFrame(updateAdminArrow);
+    return;
+  }
+
+  // Show arrow
+  adminArrow.style.display = "block";
+
+  // Move arrow to mouse
+  adminArrow.style.left = mouseX + "px";
+  adminArrow.style.top = mouseY + "px";
+
+  // Point arrow toward the correct target
+  let targetEl = null;
+
+  if (currentMode === "USCapitals" && currentTargetCapital) {
+    const stateId = USA_CAPITALS[currentTargetCapital];
+    targetEl = usaSvg.querySelector(`[data-usid="${stateId}"]`);
+  } 
+  else if (currentMode === "USStates" && currentTargetId) {
+    targetEl = usaSvg.querySelector(`[data-usid="${currentTargetId}"]`);
+  } 
+  else if (currentTargetId) {
+    targetEl = worldSvg.querySelector(`[data-cid="${currentTargetId}"]`);
+  }
+
+  if (targetEl) {
+    const box = targetEl.getBBox();
+    const cx = box.x + box.width / 2;
+    const cy = box.y + box.height / 2;
+
+    // Convert SVG coords → screen coords
+    const pt = targetEl.ownerSVGElement.createSVGPoint();
+    pt.x = cx;
+    pt.y = cy;
+    const screenPoint = pt.matrixTransform(targetEl.ownerSVGElement.getScreenCTM());
+
+    const dx = screenPoint.x - mouseX;
+    const dy = screenPoint.y - mouseY;
+    const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+
+    adminArrow.style.transform = `translate(-50%, -50%) rotate(${angle}deg)`;
+  }
+
+  requestAnimationFrame(updateAdminArrow);
+}
+
+updateAdminArrow();
+
+  
 function handleCorrect(addScore, id, isUsa) {
   if (isUsa) {
     colorUsa(id, addScore === 1 ? "#2d6a4f" : addScore === 2/3 ? "#ffd166" : addScore === 1/3 ? "#ff8c42" : "#ff0000");

@@ -231,15 +231,6 @@
     background: #111827;
   }
 
-  /* optional visual border overlay if you still want it */
-  #ws-border {
-    position: absolute;
-    width: 2px;
-    height: 120px;
-    background: black;
-    pointer-events: none;
-    z-index: 9999;
-  }
 </style>
 </head>
 <body>
@@ -275,7 +266,6 @@
   <div class="center-panel">
     <div id="target-display">Find: <span id="target">—</span></div>
     <div class="map-container">
-      <div id="ws-border"></div>
       <svg id="world-svg" viewBox="0 0 2000 1000" style="display:block;">
 
       </svg>
@@ -422,11 +412,6 @@ const endScreen = document.getElementById("end-screen");
 const endText = document.getElementById("end-text");
 const saveScoreBtn = document.getElementById("save-score-btn");
 const closeEndBtn = document.getElementById("close-end-btn");
-const wsBorderDiv = document.getElementById("ws-border");
-
-/* real fused SVG id + virtual ids */
-const JOINED_MA_ID = "ma";   // actual SVG path id
-const VIRTUAL_WEST_ID = "eh";
 
 let worldIds = [];
 let usaIds = [];
@@ -584,9 +569,8 @@ function showEndScreen() {
 }
 
 function colorWorld(id, color) {
-  // map virtual Western Sahara to real Morocco path
-  const realId = (id === VIRTUAL_WEST_ID) ? JOINED_MA_ID : id;
-  const el = worldSvg.querySelector(`[data-cid="${realId}"]`);
+  const el = worldSvg.querySelector(`[data-cid="${id}"]`);
+
   if (!el) return;
   if (el.tagName.toLowerCase() === "g") {
     el.querySelectorAll("path").forEach(p => p.style.fill = color);
@@ -616,64 +600,6 @@ function showClickLabel(name, x, y) {
   }, 1000);
 }
 
-/* virtual split bbox for arrow or future use */
-const virtualCountries = {
-  [JOINED_MA_ID]: {
-    realId: JOINED_MA_ID,
-    region: "north"
-  },
-  [VIRTUAL_WEST_ID]: {
-    realId: JOINED_MA_ID,
-    region: "south"
-  }
-};
-
-function getVirtualBBox(countryId) {
-  const v = virtualCountries[countryId];
-  if (!v) return null;
-
-  const el = worldSvg.querySelector(`[data-cid="${v.realId}"]`);
-  if (!el) return null;
-
-  const box = el.getBBox();
-
-  if (v.region === "north") {
-    return {
-      x: box.x,
-      y: box.y,
-      width: box.width,
-      height: box.height * 0.55
-    };
-  }
-
-  if (v.region === "south") {
-    return {
-      x: box.x,
-      y: box.y + box.height * 0.55,
-      width: box.width,
-      height: box.height * 0.45
-    };
-  }
-
-  return box;
-}
-
-function pointArrowAtVirtual(countryId) {
-  const box = getVirtualBBox(countryId);
-  if (!box) return;
-  const arrow = document.getElementById("arrow");
-  if (!arrow) return;
-  arrow.style.left = (box.x + box.width / 2) + "px";
-  arrow.style.top = (box.y - 40) + "px";
-}
-
-function placeWesternSaharaBorder() {
-  if (!wsBorderDiv) return;
-  // you can tweak these manually to line up visually
-  wsBorderDiv.style.left = "345px";
-  wsBorderDiv.style.top = "210px";
-}
-
 function chooseNextTarget() {
   if (currentMode === "USCapitals") {
     if (remainingCapitals.length === 0) {
@@ -689,8 +615,6 @@ function chooseNextTarget() {
     wrongAttempts = 0;
     return;
   }
-
-  placeWesternSaharaBorder();
 
   if (remainingIds.length === 0) {
     currentTargetId = null;

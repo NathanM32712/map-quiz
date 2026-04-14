@@ -1006,6 +1006,69 @@ function zoomToIds(svg, ids) {
   svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
 }
 
+/* -------------------------------------------
+   VIRTUAL SPLIT: Morocco / Western Sahara
+   (No SVG changes needed)
+------------------------------------------- */
+
+const virtualCountries = {
+    "Morocco": {
+        realId: "MA",     // the actual SVG path ID
+        region: "north"   // top half
+    },
+    "Western Sahara": {
+        realId: "MA",
+        region: "south"   // bottom half
+    }
+};
+
+/* -------------------------------------------
+   Returns a bounding box for the *virtual* half
+------------------------------------------- */
+function getVirtualBBox(countryName) {
+    const v = virtualCountries[countryName];
+    if (!v) return null;
+
+    const el = document.getElementById(v.realId);
+    if (!el) return null;
+
+    const box = el.getBBox();
+
+    // Split the shape vertically (top/bottom)
+    if (v.region === "north") {
+        return {
+            x: box.x,
+            y: box.y,
+            width: box.width,
+            height: box.height * 0.55   // top 55%
+        };
+    }
+
+    if (v.region === "south") {
+        return {
+            x: box.x,
+            y: box.y + box.height * 0.55,
+            width: box.width,
+            height: box.height * 0.45   // bottom 45%
+        };
+    }
+
+    return box;
+}
+
+/* -------------------------------------------
+   Arrow positioning using virtual split
+------------------------------------------- */
+function pointArrowAtVirtual(countryName) {
+    const box = getVirtualBBox(countryName);
+    if (!box) return;
+
+    const arrow = document.getElementById("arrow");
+    arrow.style.left = (box.x + box.width / 2) + "px";
+    arrow.style.top = (box.y - 40) + "px";
+}
+
+  
 function handleCorrect(addScore, id, isUsa) {
   if (isUsa) {
     colorUsa(id, addScore === 1 ? "#2d6a4f" : addScore === 2/3 ? "#ffd166" : addScore === 1/3 ? "#ff8c42" : "#ff0000");

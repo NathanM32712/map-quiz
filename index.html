@@ -232,7 +232,118 @@
 </style>
 </head>
 <body>
-this website was made by Nathan Marty
+
+
+
+
+
+
+<!-- SCORE POPUP -->
+<div id="scorePopup">
+    <div class="popup-box">
+        <div class="title">FINAL SCORE</div>
+        <div class="percent">100%</div>
+        <div class="fraction">(50.00 / 50)</div>
+
+        <div class="btn-row">
+            <button class="popup-btn">Save Score</button>
+            <button class="popup-btn" onclick="closeScorePopup()">Close</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Solid dark background (no transparency) */
+    #scorePopup {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000000; /* fully solid black */
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    /* Popup box — darker + blue tint + skinnier */
+    .popup-box {
+        background: #0d0f18;              /* darker + blue tint */
+        border: 2px solid #1c2233;        /* blue‑gray border */
+        padding: 18px 20px;
+        border-radius: 6px;
+        width: 210px;                     /* skinnier */
+        text-align: center;
+        box-shadow: 0 0 25px rgba(0,0,0,0.7);
+        font-family: Arial, sans-serif;
+    }
+
+    .title {
+        font-size: 18px;
+        color: #e8e8ff;
+        margin-bottom: 8px;
+    }
+
+    .percent {
+        font-size: 22px;
+        font-weight: bold;
+        color: #d6e6ff;
+        margin-bottom: 4px;
+    }
+
+    .fraction {
+        font-size: 13px;
+        color: #c7d0ff;
+        margin-bottom: 16px;
+    }
+
+    /* Buttons */
+    .btn-row {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .popup-btn {
+        background: #2c2f38;
+        border: 1px solid #3a3f4d;
+        color: #e0e0e0;
+        padding: 6px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: 0.15s;
+    }
+
+    .popup-btn:hover {
+        background: #3a3e49;
+        border-color: #4a5060;
+    }
+</style>
+
+<script>
+function closeScorePopup() {
+    document.getElementById("scorePopup").style.display = "none";
+}
+
+// Show popup when typing |
+document.addEventListener("keydown", (e) => {
+    if (e.key === "|") {
+        document.getElementById("scorePopup").style.display = "flex";
+    }
+});
+</script>
+
+
+
+
+
+
+
+
+
+
 <a class="launch-icon" href="https://nathanm32712.github.io/Launch-deck/launch-deck.html"></a>
 
 <div id="click-label"></div>
@@ -677,6 +788,9 @@ Z"/>
 </div>
 
 <script>
+// =========================
+// COUNTRY + STATE DATA
+// =========================
 const COUNTRY_NAMES = {
   "af":"Afghanistan","al":"Albania","dz":"Algeria","ao":"Angola","ar":"Argentina",
   "am":"Armenia","au":"Australia","at":"Austria","az":"Azerbaijan","bs":"Bahamas",
@@ -749,6 +863,9 @@ const USA_CAPITALS = {
   "Madison": "WI","Cheyenne": "WY"
 };
 
+// =========================
+// REGION GROUPS
+// =========================
 const REGIONS = {
   World: null,
   Africa: [
@@ -784,6 +901,9 @@ const REGIONS = {
   ]
 };
 
+// =========================
+// ELEMENT REFERENCES
+// =========================
 const worldSvg = document.getElementById("world-svg");
 const usaSvg = document.getElementById("usa-svg");
 const targetSpan = document.getElementById("target");
@@ -795,9 +915,11 @@ const skipBtn = document.getElementById("skip-btn");
 const clickLabel = document.getElementById("click-label");
 const endScreen = document.getElementById("end-screen");
 const endText = document.getElementById("end-text");
-const saveScoreBtn = document.getElementById("save-score-btn");
 const closeEndBtn = document.getElementById("close-end-btn");
 
+// =========================
+// GAME STATE
+// =========================
 let worldIds = [];
 let usaIds = [];
 let currentMode = "World";
@@ -806,38 +928,79 @@ let correctScore = 0;
 let questionsAnswered = 0;
 let wrongAttempts = 0;
 
-let remainingIds = [];       // for world + USStates (IDs)
-let remainingCapitals = [];  // for USCapitals (capital names)
-let currentTargetId = null;  // world + USStates
-let currentTargetCapital = null; // USCapitals
+let remainingIds = [];
+let remainingCapitals = [];
+let currentTargetId = null;
+let currentTargetCapital = null;
 
-function getCookie(name) {
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? parseFloat(match[2]) : null;
-}
-
-function setCookie(name, value) {
-  document.cookie = `${name}=${value};path=/;max-age=31536000`;
-}
-
+// =========================
+// LOAD BEST SCORES (SERVER)
+// =========================
 function loadBestScores() {
-  const modes = [
-    "Africa","Asia","Europe","MiddleEast","NorthAmerica",
-    "Oceania","SouthAmerica","USStates","USCapitals","World"
+  if (!parent.sessionData || !parent.sessionData.mapScores) return;
+
+  const keys = [
+    "africa","asia","europe","middleEast","northAmerica",
+    "oceania","southAmerica","usStates","usCapitals","worldMap"
   ];
-  modes.forEach(m => {
-    const best = getCookie("best_" + m);
-    const span = document.getElementById("best-" + m);
+
+  keys.forEach(k => {
+    const best = parent.sessionData.mapScores[k];
+    const span = document.getElementById("best-" + k);
     if (span) span.textContent = best != null ? `Best: ${best}%` : "";
   });
 }
 
+// =========================
+// AUTO‑SAVE SCORE TO SERVER
+// =========================
+async function autoSaveScore() {
+  if (questionsAnswered === 0) return;
+  if (!parent.sessionData || !parent.sessionData.userid) return;
+
+  const percent = Math.round((correctScore / questionsAnswered) * 100);
+
+  // convert mode → server key
+  const modeKey = {
+    Africa: "africa",
+    Asia: "asia",
+    Europe: "europe",
+    MiddleEast: "middleEast",
+    NorthAmerica: "northAmerica",
+    Oceania: "oceania",
+    SouthAmerica: "southAmerica",
+    USStates: "usStates",
+    USCapitals: "usCapitals",
+    World: "worldMap"
+  }[currentMode];
+
+  const res = await fetch("/save-map-score", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      modeKey,
+      score: percent
+    })
+  });
+
+  const data = await res.json();
+  if (data.success) {
+    parent.sessionData.mapScores[modeKey] = data.newBest;
+    loadBestScores();
+  }
+}
+
+// =========================
+// MAP INITIALIZATION
+// =========================
 function initWorldMap() {
   const elements = worldSvg.querySelectorAll("path[id], g[id]");
   worldIds = [];
+
   elements.forEach(el => {
     const id = el.id.trim().toLowerCase();
     el.dataset.cid = id;
+
     if (COUNTRY_NAMES[id]) {
       worldIds.push(id);
       el.addEventListener("click", ev => handleClickWorld(id, ev));
@@ -845,15 +1008,18 @@ function initWorldMap() {
       el.style.display = "none";
     }
   });
+
   REGIONS.World = [...worldIds];
 }
 
 function initUsaMap() {
   const elements = usaSvg.querySelectorAll("path[id], g[id]");
   usaIds = [];
+
   elements.forEach(el => {
     const id = el.id.trim().toUpperCase();
     el.dataset.usid = id;
+
     if (USA_STATES[id]) {
       usaIds.push(id);
       el.addEventListener("click", ev => handleClickUsa(id, ev));
@@ -863,17 +1029,23 @@ function initUsaMap() {
   });
 }
 
+// =========================
+// STYLE RESET
+// =========================
 function resetStylesWorld(activeIds) {
   const elements = worldSvg.querySelectorAll("[data-cid]");
+
   elements.forEach(el => {
     const id = el.dataset.cid;
     el.classList.remove("country-correct","country-wrong","country-pending");
+
     if (COUNTRY_NAMES[id] && activeIds.includes(id)) {
       el.style.display = "inline";
       el.style.opacity = "1";
       el.style.pointerEvents = "auto";
       el.classList.add("country-pending");
-      if (el.tagName.toLowerCase() === "g") {
+
+      if (el.tagName === "g") {
         el.querySelectorAll("path").forEach(p => p.style.fill = "#4caf50");
       } else {
         el.style.fill = "#4caf50";
@@ -886,15 +1058,18 @@ function resetStylesWorld(activeIds) {
 
 function resetStylesUsa(activeIds) {
   const elements = usaSvg.querySelectorAll("[data-usid]");
+
   elements.forEach(el => {
     const id = el.dataset.usid;
     el.classList.remove("country-correct","country-wrong","country-pending");
+
     if (USA_STATES[id] && activeIds.includes(id)) {
       el.style.display = "inline";
       el.style.opacity = "1";
       el.style.pointerEvents = "auto";
       el.classList.add("country-pending");
-      if (el.tagName.toLowerCase() === "g") {
+
+      if (el.tagName === "g") {
         el.querySelectorAll("path").forEach(p => p.style.fill = "#4caf50");
       } else {
         el.style.fill = "#4caf50";
@@ -905,6 +1080,9 @@ function resetStylesUsa(activeIds) {
   });
 }
 
+// =========================
+// SCORE + UI
+// =========================
 function updateScore() {
   const percent = questionsAnswered === 0 ? 0 : (correctScore / questionsAnswered) * 100;
   scoreSpan.textContent = `Score: ${correctScore.toFixed(2)} / ${questionsAnswered} (${percent.toFixed(0)}%)`;
@@ -914,23 +1092,16 @@ function updateRemainingList() {
   remainingUl.innerHTML = "";
 
   if (currentMode === "USCapitals") {
-    const sortedCaps = [...remainingCapitals].sort((a,b) => a.localeCompare(b));
-    sortedCaps.forEach(cap => {
+    const sorted = [...remainingCapitals].sort((a,b) => a.localeCompare(b));
+    sorted.forEach(cap => {
       const li = document.createElement("li");
       li.textContent = cap;
-      if (!remainingCapitals.includes(cap)) li.classList.add("done");
       remainingUl.appendChild(li);
     });
     return;
   }
 
-  let namesMap;
-  if (currentMode === "USStates") {
-    namesMap = USA_STATES;
-  } else {
-    namesMap = COUNTRY_NAMES;
-  }
-
+  const namesMap = currentMode === "USStates" ? USA_STATES : COUNTRY_NAMES;
   const sorted = [...remainingIds].sort((a,b) =>
     (namesMap[a] || a).localeCompare(namesMap[b] || b)
   );
@@ -938,21 +1109,26 @@ function updateRemainingList() {
   sorted.forEach(id => {
     const li = document.createElement("li");
     li.textContent = namesMap[id] || id;
-    if (!remainingIds.includes(id)) li.classList.add("done");
     remainingUl.appendChild(li);
   });
 }
 
 function showEndScreen() {
+  autoSaveScore();
+
   const percent = questionsAnswered === 0 ? 0 : (correctScore / questionsAnswered) * 100;
   endText.textContent = `FINAL SCORE\n${percent.toFixed(2)}%\n(${correctScore.toFixed(2)} / ${questionsAnswered})`;
   endScreen.style.display = "flex";
 }
 
+// =========================
+// COLOR HELPERS
+// =========================
 function colorWorld(id, color) {
   const el = worldSvg.querySelector(`[data-cid="${id}"]`);
   if (!el) return;
-  if (el.tagName.toLowerCase() === "g") {
+
+  if (el.tagName === "g") {
     el.querySelectorAll("path").forEach(p => p.style.fill = color);
   } else {
     el.style.fill = color;
@@ -962,24 +1138,32 @@ function colorWorld(id, color) {
 function colorUsa(id, color) {
   const el = usaSvg.querySelector(`[data-usid="${id}"]`);
   if (!el) return;
-  if (el.tagName.toLowerCase() === "g") {
+
+  if (el.tagName === "g") {
     el.querySelectorAll("path").forEach(p => p.style.fill = color);
   } else {
     el.style.fill = color;
   }
 }
 
+// =========================
+// CLICK LABEL
+// =========================
 function showClickLabel(name, x, y) {
   clickLabel.textContent = name;
   clickLabel.style.left = x + "px";
   clickLabel.style.top = y + "px";
   clickLabel.style.display = "block";
+
   clearTimeout(clickLabel.hideTimer);
   clickLabel.hideTimer = setTimeout(() => {
     clickLabel.style.display = "none";
   }, 1000);
 }
 
+// =========================
+// TARGET SELECTION
+// =========================
 function chooseNextTarget() {
   if (currentMode === "USCapitals") {
     if (remainingCapitals.length === 0) {
@@ -989,6 +1173,7 @@ function chooseNextTarget() {
       showEndScreen();
       return;
     }
+
     const idx = Math.floor(Math.random() * remainingCapitals.length);
     currentTargetCapital = remainingCapitals[idx];
     targetSpan.textContent = currentTargetCapital;
@@ -1003,25 +1188,27 @@ function chooseNextTarget() {
     showEndScreen();
     return;
   }
+
   const idx = Math.floor(Math.random() * remainingIds.length);
   currentTargetId = remainingIds[idx];
 
-  if (currentMode === "USStates") {
-    targetSpan.textContent = USA_STATES[currentTargetId];
-  } else {
-    targetSpan.textContent = COUNTRY_NAMES[currentTargetId];
-  }
+  targetSpan.textContent =
+    currentMode === "USStates"
+      ? USA_STATES[currentTargetId]
+      : COUNTRY_NAMES[currentTargetId];
+
   wrongAttempts = 0;
 }
 
+// =========================
+// ZOOM
+// =========================
 function zoomToIds(svg, ids) {
   if (!ids || ids.length === 0) return;
 
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
   ids.forEach(id => {
-
-    // ⭐ Skip Western Sahara from zoom calculations
     if (id === "ws") return;
 
     const selector = svg === worldSvg
@@ -1049,16 +1236,25 @@ function zoomToIds(svg, ids) {
   svg.setAttribute("viewBox", `${x} ${y} ${w} ${h}`);
 }
 
+// =========================
+// CORRECT ANSWER HANDLER
+// =========================
 function handleCorrect(addScore, id, isUsa) {
+  const color =
+    addScore === 1 ? "#2d6a4f" :
+    addScore === 2/3 ? "#ffd166" :
+    addScore === 1/3 ? "#ff8c42" :
+    "#ff0000";
+
   if (isUsa) {
-    colorUsa(id, addScore === 1 ? "#2d6a4f" : addScore === 2/3 ? "#ffd166" : addScore === 1/3 ? "#ff8c42" : "#ff0000");
+    colorUsa(id, color);
     const el = usaSvg.querySelector(`[data-usid="${id}"]`);
     if (el) {
       el.classList.remove("country-pending");
       el.classList.add("country-correct");
     }
   } else {
-    colorWorld(id, addScore === 1 ? "#2d6a4f" : addScore === 2/3 ? "#ffd166" : addScore === 1/3 ? "#ff8c42" : "#ff0000");
+    colorWorld(id, color);
     const el = worldSvg.querySelector(`[data-cid="${id}"]`);
     if (el) {
       el.classList.remove("country-pending");
@@ -1071,18 +1267,21 @@ function handleCorrect(addScore, id, isUsa) {
   updateScore();
 }
 
+// =========================
+// CLICK HANDLERS
+// =========================
 function handleClickWorld(id, ev) {
   const name = COUNTRY_NAMES[id] || id;
   showClickLabel(name, ev.clientX, ev.clientY);
+
   if (!gameActive) return;
   if (!currentTargetId || currentMode === "USStates" || currentMode === "USCapitals") return;
 
   if (id === currentTargetId) {
-    let add = 0;
-    if (wrongAttempts === 0) add = 1;
-    else if (wrongAttempts === 1) add = 2/3;
-    else if (wrongAttempts === 2) add = 1/3;
-    else add = 0;
+    let add =
+      wrongAttempts === 0 ? 1 :
+      wrongAttempts === 1 ? 2/3 :
+      wrongAttempts === 2 ? 1/3 : 0;
 
     handleCorrect(add, id, false);
     remainingIds = remainingIds.filter(x => x !== id);
@@ -1095,6 +1294,7 @@ function handleClickWorld(id, ev) {
       el.classList.add("country-wrong");
       setTimeout(() => el.classList.remove("country-wrong"), 500);
     }
+
     if (wrongAttempts >= 3 && currentTargetId) {
       colorWorld(currentTargetId, "#ff0000");
       const correctEl = worldSvg.querySelector(`[data-cid="${currentTargetId}"]`);
@@ -1102,6 +1302,7 @@ function handleClickWorld(id, ev) {
         correctEl.classList.remove("country-pending");
         correctEl.classList.add("country-correct");
       }
+
       questionsAnswered++;
       updateScore();
       remainingIds = remainingIds.filter(x => x !== currentTargetId);
@@ -1114,15 +1315,17 @@ function handleClickWorld(id, ev) {
 function handleClickUsa(id, ev) {
   const stateName = USA_STATES[id] || id;
   showClickLabel(stateName, ev.clientX, ev.clientY);
+
   if (!gameActive) return;
+
   if (currentMode === "USStates") {
     if (!currentTargetId) return;
+
     if (id === currentTargetId) {
-      let add = 0;
-      if (wrongAttempts === 0) add = 1;
-      else if (wrongAttempts === 1) add = 2/3;
-      else if (wrongAttempts === 2) add = 1/3;
-      else add = 0;
+      let add =
+        wrongAttempts === 0 ? 1 :
+        wrongAttempts === 1 ? 2/3 :
+        wrongAttempts === 2 ? 1/3 : 0;
 
       handleCorrect(add, id, true);
       remainingIds = remainingIds.filter(x => x !== id);
@@ -1135,6 +1338,7 @@ function handleClickUsa(id, ev) {
         el.classList.add("country-wrong");
         setTimeout(() => el.classList.remove("country-wrong"), 500);
       }
+
       if (wrongAttempts >= 3 && currentTargetId) {
         colorUsa(currentTargetId, "#ff0000");
         const correctEl = usaSvg.querySelector(`[data-usid="${currentTargetId}"]`);
@@ -1142,6 +1346,7 @@ function handleClickUsa(id, ev) {
           correctEl.classList.remove("country-pending");
           correctEl.classList.add("country-correct");
         }
+
         questionsAnswered++;
         updateScore();
         remainingIds = remainingIds.filter(x => x !== currentTargetId);
@@ -1149,15 +1354,18 @@ function handleClickUsa(id, ev) {
         chooseNextTarget();
       }
     }
-  } else if (currentMode === "USCapitals") {
+  }
+
+  else if (currentMode === "USCapitals") {
     if (!currentTargetCapital) return;
+
     const correctStateId = USA_CAPITALS[currentTargetCapital];
+
     if (id === correctStateId) {
-      let add = 0;
-      if (wrongAttempts === 0) add = 1;
-      else if (wrongAttempts === 1) add = 2/3;
-      else if (wrongAttempts === 2) add = 1/3;
-      else add = 0;
+      let add =
+        wrongAttempts === 0 ? 1 :
+        wrongAttempts === 1 ? 2/3 :
+        wrongAttempts === 2 ? 1/3 : 0;
 
       handleCorrect(add, id, true);
       remainingCapitals = remainingCapitals.filter(c => c !== currentTargetCapital);
@@ -1170,14 +1378,17 @@ function handleClickUsa(id, ev) {
         el.classList.add("country-wrong");
         setTimeout(() => el.classList.remove("country-wrong"), 500);
       }
+
       if (wrongAttempts >= 3 && currentTargetCapital) {
         const correctId = USA_CAPITALS[currentTargetCapital];
         colorUsa(correctId, "#ff0000");
+
         const correctEl = usaSvg.querySelector(`[data-usid="${correctId}"]`);
         if (correctEl) {
           correctEl.classList.remove("country-pending");
           correctEl.classList.add("country-correct");
         }
+
         questionsAnswered++;
         updateScore();
         remainingCapitals = remainingCapitals.filter(c => c !== currentTargetCapital);
@@ -1188,6 +1399,9 @@ function handleClickUsa(id, ev) {
   }
 }
 
+// =========================
+// START GAME
+// =========================
 function startGame() {
   endScreen.style.display = "none";
   if (clickLabel) clickLabel.style.display = "none";
@@ -1211,15 +1425,20 @@ function startGame() {
     remainingCapitals = [];
     resetStylesUsa(remainingIds);
     zoomToIds(usaSvg, remainingIds);
-  } else if (currentMode === "USCapitals") {
+  }
+
+  else if (currentMode === "USCapitals") {
     remainingIds = [];
     remainingCapitals = Object.keys(USA_CAPITALS);
     resetStylesUsa(Object.values(USA_CAPITALS));
     zoomToIds(usaSvg, Object.values(USA_CAPITALS));
-  } else {
+  }
+
+  else {
     const regionKey = currentMode === "World" ? "World" : currentMode;
     const base = REGIONS[regionKey];
     const active = base ? base.map(x => x.toLowerCase()) : [...worldIds];
+
     remainingIds = active;
     remainingCapitals = [];
     resetStylesWorld(active);
@@ -1231,6 +1450,9 @@ function startGame() {
   chooseNextTarget();
 }
 
+// =========================
+// BUTTONS
+// =========================
 document.querySelectorAll(".mode-btn").forEach(btn => {
   btn.addEventListener("click", () => {
     currentMode = btn.dataset.mode;
@@ -1238,12 +1460,11 @@ document.querySelectorAll(".mode-btn").forEach(btn => {
   });
 });
 
-startBtn.addEventListener("click", () => {
-  startGame();
-});
+startBtn.addEventListener("click", () => startGame());
 
 skipBtn.addEventListener("click", () => {
   if (!gameActive) return;
+
   if (currentMode === "USCapitals") {
     if (!currentTargetCapital) return;
     const cap = currentTargetCapital;
@@ -1261,21 +1482,16 @@ skipBtn.addEventListener("click", () => {
   }
 });
 
-saveScoreBtn.addEventListener("click", () => {
-  if (questionsAnswered === 0) return;
-  const percent = Math.round((correctScore / questionsAnswered) * 100);
-  const key = "best_" + currentMode;
-  const oldBest = getCookie(key);
-  if (oldBest === null || percent > oldBest) {
-    setCookie(key, percent);
-  }
-  loadBestScores();
-});
-
+// =========================
+// END SCREEN CLOSE
+// =========================
 closeEndBtn.addEventListener("click", () => {
   endScreen.style.display = "none";
 });
 
+// =========================
+// INITIAL LOAD
+// =========================
 window.addEventListener("load", () => {
   initWorldMap();
   initUsaMap();
